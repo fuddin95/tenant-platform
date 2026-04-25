@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// CORE OBJECTS — only three exist at MVP
+// ─────────────────────────────────────────────
+
+model Landlord {
+  id         String         @id @default(cuid())
+  email      String         @unique
+  name       String
+  role       LandlordRole   @default(INDEPENDENT_LANDLORD)
+  city       String?
+  phone      String?
+  properties Property[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([email])
+}
+
+model Tenant {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  profile      Profile?
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([email])
+}
+
+// OBJECT 1: Property — owned by Landlord
+model Property {
+  id           String         @id @default(cuid())
+  landlordId   String
+  landlord     Landlord       @relation(fields: [landlordId], references: [id], onDelete: Restrict)
+  address      String
+  unitNumber   String?
+  city         String
+  rent         Decimal        @db.Decimal(10, 2)
+  bedrooms     Int
+  // The public apply link token — never expose the raw UUID, use slug
+  applySlug    String         @unique @default(cuid())
+  status       PropertyStatus @default(ACTIVE)
+  requiredDocs DocumentType[]
+  applications Application[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([landlordId])
+  @@index([applySlug])
+}
+
+// OBJECT 2: Profile — owned by Tenant (the Vault)
+// Constitution Rule 1: Landlords have zero write access here
+model Profile {
+  id                 String      @id @default(cuid())
+  tenantId           String      @unique
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents          Document[]
+  references         TenantReference[]
+  completionPercent  Int         @default(0)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  profileId   String
+  profile     Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type        DocumentType
+  // storageKey is the S3 object key — NEVER returned to client directly
+  // Client always gets a pre-signed URL via server-side generation
+  storageKey  String
+  fileName    String
+  mimeType    String
+  sizeBytes   Int
+  replacedAt  DateTime?    // set when tenant replaces this doc with a newer version
+  uploadedAt  DateTime     @default(now())
+
+  @@index([profileId, type])
+}
+
+model TenantReference {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String
+  phone        String?
+  email        String?
+  createdAt    DateTime @default(now())
+
+  @@index([profileId])
+}
+
+// OBJECT 3: Application — tenant's request for a specific property
+model Application {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  propertyId   String
+  property     Property          @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  // Internal status — Constitution Rule 6: NOT shown to tenant
+  status       ApplicationStatus @default(PENDING)
+  accessGrants AccessGrant[]
+  notifications Notification[]
+  submittedAt  DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([tenantId, propertyId]) // One application per tenant per property
+  @@index([propertyId])
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────
+// ACCESS CONTROL
+// Constitution Rules 2, 3, 4, 8
+// ─────────────────────────────────────────────
+
+model AccessGrant {
+  id            String       @id @default(cuid())
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  // Time-bound by default — expiresAt must always be set (Rule 8)
+  grantedAt     DateTime     @default(now())
+  expiresAt     DateTime     // Never null — null expiry is invalid
+  // Revocation — backend-enforced (Rule 4)
+  // revokedAt IS NULL = active, revokedAt IS SET = revoked instantly
+  revokedAt     DateTime?
+  revokedBy     String?      // tenantId who triggered revocation
+  // Granular per-document consent (Rule 3)
+  allowedDocs   DocumentType[]
+  auditEvents   AuditEvent[]
+
+  @@index([applicationId])
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG — append-only, never update or delete
+// Constitution Rule 3: every access event is recorded
+// Constitution Rule 9: source attribution on all facts
+// ─────────────────────────────────────────────
+model AuditEvent {
+  id            String         @id @default(cuid())
+  accessGrantId String
+  accessGrant   AccessGrant    @relation(fields: [accessGrantId], references: [id], onDelete: Restrict)
+  eventType     AuditEventType
+  actorId       String         // landlordId, tenantId, or 'system'
+  actorType     ActorType
+  // Rule 9: source attribution
+  metadata      Json?          // e.g. { documentType: 'GOVERNMENT_ID' }
+  occurredAt    DateTime       @default(now())
+  // NO updatedAt — this table is append-only by design
+  // Any attempt to UPDATE or DELETE here is a constitution violation
+
+  @@index([accessGrantId])
+  @@index([occurredAt])
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS — in-app only at MVP
+// ─────────────────────────────────────────────
+model Notification {
+  id            String           @id @default(cuid())
+  applicationId String
+  application   Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  recipientId   String           // tenantId or landlordId
+  recipientType ActorType
+  type          NotificationType
+  read          Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+
+  @@index([recipientId, read])
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum LandlordRole {
+  INDEPENDENT_LANDLORD
+  INDEPENDENT_AGENT
+}
+
+enum PropertyStatus {
+  ACTIVE
+  FILLED
+  INACTIVE
+}
+
+enum DocumentType {
+  GOVERNMENT_ID
+  PROOF_OF_INCOME
+  PAY_STUB
+  EMPLOYMENT_LETTER
+  REFERENCE_CONTACT
+  CREDIT_REPORT
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  DECLINED
+}
+
+enum AuditEventType {
+  ACCESS_GRANTED
+  DOCUMENT_VIEWED
+  ACCESS_REVOKED
+  ACCESS_EXPIRED
+  APPLICATION_SUBMITTED
+  APPLICATION_STATUS_CHANGED
+  MISSING_DOCS_NUDGE_SENT
+}
+
+enum ActorType {
+  TENANT
+  LANDLORD
+  SYSTEM
+}
+
+enum NotificationType {
+  MISSING_DOCUMENTS
+  LANDLORD_VIEWED_PROFILE
+  ACCESS_EXPIRING_SOON
+  APPLICATION_RECEIVED
+}

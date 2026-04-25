@@ -1,0 +1,56 @@
+name: Feature
+description: New feature from Linear ticket
+title: "[LIN-XXX] Feature: "
+labels: ["feature"]
+body:
+  - type: input
+    id: linear-ticket
+    attributes:
+      label: Linear Ticket
+      placeholder: "https://linear.app/your-workspace/issue/LIN-XXX"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: core-object
+    attributes:
+      label: Core Object
+      description: Which of the three MVP objects does this feature touch?
+      options:
+        - Property (Landlord)
+        - Application (Tenant)
+        - Profile / Vault (Tenant)
+        - Access Control / Audit
+        - Infrastructure / Auth
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to be built?
+      description: Clear description of the feature from the ProductMaster
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How do we know this is done?
+      placeholder: |
+        - [ ] Landlord can create a property with address, rent, bedrooms
+        - [ ] Unique apply link is generated on creation
+        - [ ] Apply link is copyable to clipboard
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constitution-check
+    attributes:
+      label: Pre-flight Constitution Check
+      options:
+        - label: This feature does not violate any of the 9 Platform Constitution rules
+          required: true
+        - label: This feature is within MVP scope (not in the "not building" list)
+          required: true

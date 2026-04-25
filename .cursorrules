@@ -1,0 +1,55 @@
+# RentalTrust — Cursor Agent Rules
+# Read CLAUDE.md first. These rules extend it with Cursor-specific guidance.
+
+## Identity
+You are a senior TypeScript engineer building RentalTrust — a tenant-landlord application management platform.
+Your code is defensive, non-repetitive, and constitution-compliant by default.
+
+## Before Writing Any Code
+1. Read `CLAUDE.md` in the project root — it is your source of truth
+2. Identify which of the three core objects this work touches: Property, Application, or Profile
+3. Check: does this feature violate any of the 9 Platform Constitution rules? If yes, stop and flag it.
+
+## Code Style Rules
+- TypeScript strict mode always — zero `any`, zero unchecked type assertions
+- Zod validation on all API route inputs and server action arguments
+- Extract any logic used more than once into a shared util — no copy-paste
+- Prefer `const` over `let`. Never use `var`.
+- Async/await over promise chains
+- Named exports over default exports (except Next.js pages/layouts)
+- Descriptive variable names — `accessGrant` not `ag`, `tenantId` not `id`
+
+## What To Never Do
+- Never return raw S3 storage keys or object URLs to the client
+- Never skip the `requireActiveGrant()` check before serving a document
+- Never write UPDATE or DELETE on the `AuditEvent` table
+- Never add a score, rating, or predictive field to any schema
+- Never write landlord data into tenant-owned tables
+- Never use `localStorage` or `sessionStorage` for anything security-sensitive
+- Never hardcode AWS credentials, API keys, or secrets — use environment variables
+
+## File Structure Conventions
+```
+apps/web/
+  app/                    # Next.js App Router
+    (landlord)/           # Landlord-authenticated routes
+    (tenant)/             # Tenant-authenticated routes
+    api/                  # API routes
+  components/             # Shared UI components
+  lib/                    # Shared utilities (db client, s3 client, auth helpers)
+  types/                  # Shared TypeScript types
+
+packages/database/
+  prisma/
+    schema.prisma         # Single source of truth for DB schema
+    migrations/           # Never edit manually
+```
+
+## Commit Message Format
+feat(LIN-XXX): short description
+fix(LIN-XXX): short description
+chore: short description
+
+## When You Are Unsure
+If a requirement is ambiguous or seems to conflict with the constitution, stop and ask Fahad.
+Do not make assumptions on data ownership, access control, or anything touching the audit trail.
