@@ -1,13 +1,9 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  // Enforce strict mode for React — catches side effects early
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
-
-  // Never expose raw S3 URLs or internal keys to the client
-  serverExternalPackages: ['@prisma/client'],
-
-  // Content Security Policy — prevent document exfiltration
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
   async headers() {
     return [
       {
