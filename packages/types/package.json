@@ -1,0 +1,17 @@
+{
+  "name": "@rental-trust/types",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "fp-ts": "^2.16.9",
+    "io-ts": "^2.2.21",
+    "io-ts-types": "^0.5.19"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

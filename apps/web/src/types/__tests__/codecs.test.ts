@@ -3,7 +3,7 @@ import { PropertyCardCodec, TenantProfileCodec } from '../codecs';
 
 describe('PropertyCardCodec', () => {
   it('decodes a valid property card', () => {
-    const raw = { id: '1', address: '123 Main St', rent: 2000, bedrooms: 2, applySlug: 'abc' };
+    const raw = { id: '1', address: '123 Main St', city: 'Toronto', rent: 2000, bedrooms: 2, status: 'ACTIVE', applySlug: 'abc' };
     const result = PropertyCardCodec.decode(raw);
     expect(E.isRight(result)).toBe(true);
   });
