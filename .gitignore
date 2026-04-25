@@ -40,3 +40,6 @@ coverage/
 
 # Prisma
 packages/database/prisma/migrations/dev.db
+
+# Git worktrees
+.worktrees/

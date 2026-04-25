@@ -36,7 +36,10 @@ This auto-closes Linear tickets when a PR with `[LIN-XXX]` merges.
 
 ### 4. Install Dependencies
 ```bash
-node --version   # must be >= 20
+# Node >= 20 required. Use nvm to install:
+nvm install node --default
+node --version   # should show v20+
+
 npm install
 ```
 
@@ -58,6 +61,31 @@ npm run db:generate
 
 ### 7. Open in Cursor
 Open the `tenant-platform` folder in Cursor. The `.cursorrules` file loads automatically — agents will follow project conventions.
+
+---
+
+## Starting the App
+
+### Frontend only (Next.js dev server)
+```bash
+npm run dev --workspace=apps/web
+# → http://localhost:3000
+```
+
+### Full stack (frontend + backend + database via Docker)
+```bash
+docker-compose up
+# Frontend → http://localhost:3000
+# Backend  → http://localhost:3001
+# Postgres → localhost:5432
+```
+
+### Check everything is working
+```bash
+npm run typecheck   # TypeScript — no errors
+npm run lint        # ESLint — no warnings
+npm test            # Jest — all tests green
+```
 
 ---
 
@@ -101,13 +129,16 @@ rental-trust/
 │
 ├── apps/
 │   └── web/                     # Next.js 14 App Router
-│       ├── app/
-│       │   ├── (landlord)/      # Landlord-authenticated routes
-│       │   ├── (tenant)/        # Tenant-authenticated routes
-│       │   ├── api/             # API routes
-│       │   └── apply/[slug]/    # Public apply link (unauthenticated)
-│       ├── components/          # Shared UI
-│       └── lib/                 # s3.ts, auth.ts, access-guard.ts
+│       └── src/
+│           ├── app/
+│           │   ├── (landlord)/  # Landlord-authenticated routes
+│           │   ├── (tenant)/    # Tenant-authenticated routes
+│           │   ├── api/         # API routes
+│           │   └── apply/[slug]/# Public apply link (unauthenticated)
+│           ├── components/      # Shared UI components
+│           ├── lib/             # api.ts, utils.ts
+│           ├── types/           # IO-TS codecs + branded types
+│           └── styles/          # Tailwind globals
 │
 ├── packages/
 │   └── database/
@@ -131,7 +162,8 @@ rental-trust/
 
 | Command | What it does |
 |---------|-------------|
-| `npm run dev` | Start all apps in dev mode |
+| `npm run dev --workspace=apps/web` | Start frontend dev server (port 3000) |
+| `docker-compose up` | Start all services (FE + BE + Postgres) |
 | `npm run typecheck` | TypeScript check across all packages |
 | `npm run lint` | ESLint across all packages |
 | `npm test` | Run tests across all packages |
