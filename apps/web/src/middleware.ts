@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export default auth((req: NextRequest & { auth: { user?: { role?: string } } | null }) => {
+export default auth((req: NextRequest & { readonly auth: { readonly user?: { readonly role?: string } } | null }) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 

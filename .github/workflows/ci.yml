@@ -17,6 +17,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run db:generate --workspace=packages/database
       - run: npm run typecheck --workspaces --if-present
 
   lint:
@@ -29,6 +30,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run db:generate --workspace=packages/database
       - run: npm run lint --workspaces --if-present
 
   test:
