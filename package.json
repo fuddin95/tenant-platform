@@ -7,7 +7,8 @@
   ],
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "npx prisma generate --schema=packages/database/prisma/schema.prisma && turbo build --filter=@rental-trust/web",
+    "start": "cd apps/web && npm start",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
