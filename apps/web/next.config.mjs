@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ['@rental-trust/database'],
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
