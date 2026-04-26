@@ -1,0 +1,9 @@
+[phases.build]
+cmds = [
+  "npx prisma generate --schema=packages/database/prisma/schema.prisma",
+  "npx turbo build --filter=@rental-trust/web"
+]
+
+[start]
+cmd = "npm start"
+cwd = "apps/web"
