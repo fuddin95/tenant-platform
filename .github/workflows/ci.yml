@@ -73,6 +73,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run db:generate --workspace=packages/database
       - run: npm run build --workspace=apps/web
         env:
           # Dummy values — build should not require real secrets
