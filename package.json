@@ -14,7 +14,8 @@
     "db:generate": "npm run db:generate --workspace=packages/database",
     "db:push": "npm run db:push --workspace=packages/database",
     "db:migrate": "npm run db:migrate --workspace=packages/database",
-    "db:studio": "npm run db:studio --workspace=packages/database"
+    "db:studio": "npm run db:studio --workspace=packages/database",
+    "db:seed": "npm run seed --workspace=packages/database"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
