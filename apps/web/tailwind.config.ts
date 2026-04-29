@@ -25,6 +25,11 @@ const config: Config = {
         md: 'var(--shadow-md)',
         lg: 'var(--shadow-lg)',
       },
+      fontFamily: {
+        serif: ['var(--font-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+      },
       borderRadius: {
         sm: 'var(--radius-sm)',
         md: 'var(--radius-md)',
