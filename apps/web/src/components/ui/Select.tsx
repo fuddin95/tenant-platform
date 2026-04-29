@@ -65,7 +65,5 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   },
 );
 
-Select.displayName = 'Select';
-
 export default Select;
 export type { SelectProps, SelectOption };
