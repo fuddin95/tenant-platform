@@ -1,6 +1,6 @@
 # Backend Architecture Design
 **Date:** 2026-04-29  
-**Status:** Approved — pending API endpoint map  
+**Status:** Approved  
 **Author:** Fahad + Claude  
 **Scope:** Express backend (`apps/backend`) — auth, REST API, S3, middleware
 
@@ -147,7 +147,7 @@ apps/backend/src/
 ├── services/                        # business logic — depends on interfaces only
 │   ├── auth.service.ts              # makeAuthService(landlordRepo, tenantRepo, jwt)
 │   ├── property.service.ts          # makePropertyService(repo)
-│   ├── application.service.ts       # makeApplicationService(appRepo, grantRepo, auditRepo)
+│   ├── application.service.ts       # makeApplicationService(appRepo, grantRepo, auditRepo, notifRepo)
 │   ├── profile.service.ts           # makeProfileService(profileRepo, s3)
 │   ├── grant.service.ts             # makeGrantService(grantRepo, auditRepo)
 │   ├── document.service.ts          # makeDocumentService(profileRepo, grantRepo, auditRepo, s3)
@@ -212,7 +212,7 @@ const notifRepo       = makeNotificationRepository(db);
 // Services
 const authService    = makeAuthService(landlordRepo, tenantRepo, jwt);
 const propService    = makePropertyService(propertyRepo);
-const appService     = makeApplicationService(applicationRepo, grantRepo, auditRepo);
+const appService     = makeApplicationService(applicationRepo, grantRepo, auditRepo, notifRepo);
 const profileService = makeProfileService(profileRepo, s3);
 const grantService   = makeGrantService(grantRepo, auditRepo);
 const docService     = makeDocumentService(profileRepo, grantRepo, auditRepo, s3);
@@ -266,14 +266,166 @@ This is a non-breaking additive migration. Existing rows will need to have `pass
 
 ---
 
-## 7. API Endpoints (To Be Designed — Next Section)
+## 7. API Endpoint Map
 
-The full endpoint map (routes, method, auth requirements, request/response shapes, constitution guards) is the next design section. Domains:
+### 7.1 Auth — `/api/auth`
 
-- `/api/auth` — register, login, logout, me
-- `/api/properties` — landlord CRUD + public apply slug
-- `/api/applications` — tenant submit + landlord review
-- `/api/profile` — tenant vault + document management
-- `/api/grants` — create, revoke, list
-- `/api/documents` — presigned view URLs (landlord with active grant)
-- `/api/notifications` — list + mark read
+All routes public except `GET /api/auth/me`.
+
+| Method | Path | Auth | Request Body | Response |
+|--------|------|------|-------------|----------|
+| `POST` | `/api/auth/register` | public | `{ email, password, name, role: LANDLORD\|TENANT, landlordRole? }` | `{ id, email, name, role }` + sets httpOnly cookie |
+| `POST` | `/api/auth/login` | public | `{ email, password }` | `{ id, email, name, role }` + sets httpOnly cookie |
+| `POST` | `/api/auth/logout` | requireAuth | — | `204` + clears cookie |
+| `GET` | `/api/auth/me` | requireAuth | — | `{ id, email, name, role }` |
+
+**Side effects on `POST /api/auth/register`:**
+- Creates `Landlord` or `Tenant` row with bcrypt `passwordHash`
+- If `role === TENANT`: auto-creates `Profile` shell (`completionPercent: 0`)
+- `passwordHash` is never returned in any response
+
+---
+
+### 7.2 Properties — `/api/properties`
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/api/properties` | LANDLORD | Returns own properties only — filtered by `landlordId === req.user.id` |
+| `POST` | `/api/properties` | LANDLORD | `applySlug` auto-generated server-side — never accepted from client |
+| `GET` | `/api/properties/:id` | LANDLORD | Guard: `property.landlordId === req.user.id` |
+| `PATCH` | `/api/properties/:id` | LANDLORD | Guard: same ownership check |
+| `GET` | `/api/properties/:id/applications` | LANDLORD | Returns `ApplicationCard[]` with internal `status` |
+| `GET` | `/api/apply/:slug` | **public** | Public-safe fields only — no `landlordId`, no internal status |
+
+**Response shapes:**
+```typescript
+// PropertyCard
+{ id, address, unitNumber, city, rent, bedrooms, status, applySlug, applicationCount, createdAt }
+
+// ApplicationCard (landlord view — internal status visible)
+{ id, tenantName, submittedAt, status, profileCompletion, missingDocs: DocumentType[] }
+
+// Public apply page
+{ address, city, rent, bedrooms, landlordName, requiredDocs: DocumentType[] }
+```
+
+---
+
+### 7.3 Applications — `/api/applications`
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `POST` | `/api/applications` | TENANT | `consentGiven: true` required (codec-enforced) |
+| `GET` | `/api/applications` | TENANT | Own applications only — internal `status` omitted |
+| `GET` | `/api/applications/:id` | TENANT or LANDLORD | Response shape differs by role (Constitution Rule 6) |
+| `PATCH` | `/api/applications/:id/status` | LANDLORD | Internal status only — never sent to tenant |
+
+**On `POST /api/applications` — full side-effect chain:**
+1. Validate `consentGiven === true` (io-ts `ConsentTrue` brand)
+2. Guard: one application per tenant per property (unique constraint)
+3. Create `Application` (`status: PENDING`)
+4. Create `AccessGrant` (`expiresAt: now + 7 days`, `allowedDocs` from request body)
+5. Write `AuditEvent`: `APPLICATION_SUBMITTED`
+6. Write `AuditEvent`: `ACCESS_GRANTED`
+7. Create `Notification` (`APPLICATION_RECEIVED`) → landlord
+8. If any `property.requiredDocs` missing from tenant profile → create `Notification` (`MISSING_DOCUMENTS`) → tenant
+
+**Constitution Rule 6 — role-split response on `GET /api/applications/:id`:**
+```typescript
+// TENANT response — no internal status
+{ id, propertyAddress, landlordName, submittedAt, accessGrantStatus: ACTIVE|EXPIRED|REVOKED }
+
+// LANDLORD response — includes internal status
+{ id, tenantName, submittedAt, status, profileCompletion, missingDocs: DocumentType[] }
+```
+
+---
+
+### 7.4 Profile — `/api/profile`
+
+All routes: `requireAuth + requireRole('TENANT')`.
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/api/profile` | `storageKey` never in response — only document metadata |
+| `POST` | `/api/profile/documents/upload-url` | Returns S3 presigned PUT URL (15 min expiry) + pre-created `documentId` |
+| `POST` | `/api/profile/documents/confirm` | Called after S3 PUT; activates document, recalculates `completionPercent` |
+| `DELETE` | `/api/profile/documents/:id` | Sets `replacedAt` (soft delete); guard: doc belongs to tenant |
+| `POST` | `/api/profile/references` | Adds reference contact |
+| `DELETE` | `/api/profile/references/:id` | Guard: reference belongs to tenant |
+
+**Document upload flow (two-step, S3 direct upload):**
+```
+1. POST /api/profile/documents/upload-url  →  { uploadUrl, documentId }
+2. Client PUTs file directly to S3 via uploadUrl
+3. POST /api/profile/documents/confirm  { documentId }  →  DocumentMeta
+```
+S3 key generated server-side only — never client-supplied.
+
+**DocumentMeta response:** `{ id, type, fileName, mimeType, sizeBytes, uploadedAt }` — no `storageKey`.
+
+---
+
+### 7.5 Access Grants — `/api/grants`
+
+All routes: `requireAuth + requireRole('TENANT')`.
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/api/grants` | Returns all grants with computed `status: ACTIVE\|EXPIRED\|REVOKED` |
+| `DELETE` | `/api/grants/:id` | Instant backend revocation — sets `revokedAt`, writes AuditEvent |
+
+**On `DELETE /api/grants/:id` — revocation sequence:**
+1. Guard: `grant.application.tenantId === req.user.id`
+2. Set `revokedAt = now()`, `revokedBy = req.user.id`
+3. Write `AuditEvent`: `ACCESS_REVOKED` (actorId: tenantId, actorType: TENANT)
+4. Return `204` — landlord's next document request fails `checkGrantActive` immediately
+
+**Constitution Rule 4:** Revocation is backend-enforced. UI revocation without this backend call is a bug.
+
+---
+
+### 7.6 Documents — `/api/documents`
+
+Landlord-side document viewing with full constitution guard chain.
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/api/documents/:id/url` | LANDLORD | Full guard chain, then presigned GET URL |
+
+**Guard chain on every call (order is mandatory):**
+1. `requireAuth` + `requireRole('LANDLORD')`
+2. Fetch `AccessGrant` by `grantId` query param
+3. `checkGrantActive(grant)` — `revokedAt IS NULL` AND `expiresAt > now()`
+4. Verify `document.type` is in `grant.allowedDocs`
+5. Verify `grant.application.property.landlordId === req.user.id`
+6. Generate S3 presigned GET URL (max 1hr — never raw S3 key)
+7. Write `AuditEvent`: `DOCUMENT_VIEWED` (actorId: landlordId, actorType: LANDLORD, metadata: `{ documentType }`)
+
+**Response:** `{ url: string, expiresAt: string }` — client re-fetches when `expiresAt` passes.
+
+**Constitution Rules 2, 3, 4:** Pre-signed URL only, every view logged, revocation checked server-side before every URL generation.
+
+---
+
+### 7.7 Notifications — `/api/notifications`
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/api/notifications` | requireAuth | Filtered to `recipientId === req.user.id` |
+| `PATCH` | `/api/notifications/:id/read` | requireAuth | Guard: `notification.recipientId === req.user.id` |
+
+---
+
+### 7.8 Endpoint Summary
+
+| Domain | Count | Auth patterns used |
+|--------|-------|--------------------|
+| Auth | 4 | public, requireAuth |
+| Properties | 6 | LANDLORD, public |
+| Applications | 4 | TENANT, LANDLORD, both |
+| Profile | 6 | TENANT |
+| Grants | 2 | TENANT |
+| Documents | 1 | LANDLORD + grant chain |
+| Notifications | 2 | requireAuth |
+| **Total** | **25** | |
