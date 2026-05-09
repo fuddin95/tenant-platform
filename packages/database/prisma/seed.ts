@@ -7,13 +7,13 @@ import { PrismaClient } from '@prisma/client';
 type DocumentType = 'GOVERNMENT_ID' | 'PROOF_OF_INCOME' | 'PAY_STUB' | 'EMPLOYMENT_LETTER' | 'REFERENCE_CONTACT' | 'CREDIT_REPORT';
 
 export type SeedData = {
-  landlord: { id: string; email: string; name: string; role: 'INDEPENDENT_LANDLORD'; city: string; phone: string };
+  landlord: { id: string; email: string; name: string; role: 'INDEPENDENT_LANDLORD'; city: string; phone: string; passwordHash: string };
   property: {
     id: string; landlordId: string; address: string; unitNumber: string;
     city: string; rent: number; bedrooms: number; applySlug: string;
     status: 'ACTIVE'; requiredDocs: DocumentType[];
   };
-  tenant: { id: string; email: string; name: string };
+  tenant: { id: string; email: string; name: string; passwordHash: string };
   profile: { id: string; tenantId: string; completionPercent: number };
   documents: Array<{
     id: string; profileId: string; type: DocumentType;
@@ -50,6 +50,8 @@ export const buildSeedData = (): SeedData => {
       role: 'INDEPENDENT_LANDLORD',
       city: 'Toronto',
       phone: '416-555-0100',
+      // pre-computed bcrypt hash of 'DevSeed123!' — local dev only
+      passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6o2bFBzG6.',
     },
     property: {
       id: propertyId,
@@ -63,7 +65,7 @@ export const buildSeedData = (): SeedData => {
       status: 'ACTIVE',
       requiredDocs: ['GOVERNMENT_ID', 'PROOF_OF_INCOME'],
     },
-    tenant: { id: tenantId, email: 'dev-tenant@example.com', name: 'Dev Tenant' },
+    tenant: { id: tenantId, email: 'dev-tenant@example.com', name: 'Dev Tenant', passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6o2bFBzG6.' },
     profile: { id: profileId, tenantId, completionPercent: 80 },
     documents: [
       {
