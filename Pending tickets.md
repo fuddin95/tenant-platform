@@ -62,7 +62,7 @@
 ## Phase B — Prisma Repositories
 
 ### TICKET-006 — Landlord + Tenant Prisma repositories
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase B, Task 6  
 **Summary:** Implement `makeLandlordRepository(db)` and `makeTenantRepository(db)` satisfying their interfaces. Methods: `findByEmail`, `findById`, `create`. `passwordHash` is stored but never selected in read responses that return to service layer — select it explicitly only in `findByEmail`/`findById` so auth service can compare it.  
 **Files:** `apps/backend/src/repositories/prisma/landlord.repository.ts`, `apps/backend/src/repositories/prisma/tenant.repository.ts`  
@@ -246,7 +246,7 @@
 | TICKET-003 | A — Foundation | DONE |
 | TICKET-004 | A — Foundation | DONE |
 | TICKET-005 | A — Foundation | DONE |
-| TICKET-006 | B — Repositories | PENDING |
+| TICKET-006 | B — Repositories | DONE |
 | TICKET-007 | B — Repositories | PENDING |
 | TICKET-008 | B — Repositories | PENDING |
 | TICKET-009 | B — Repositories | PENDING |
