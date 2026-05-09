@@ -71,7 +71,7 @@
 ---
 
 ### TICKET-007 — Property Prisma repository
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase B, Task 7  
 **Summary:** Implement `makePropertyRepository(db)` satisfying `IPropertyRepository`. `findByLandlord` includes `_count: { select: { applications: true } }`. `findBySlug` includes landlord name but excludes landlordId. `create` auto-generates `applySlug` via `cuid()` server-side — never from client input.  
 **Files:** `apps/backend/src/repositories/prisma/property.repository.ts`  
@@ -247,7 +247,7 @@
 | TICKET-004 | A — Foundation | DONE |
 | TICKET-005 | A — Foundation | DONE |
 | TICKET-006 | B — Repositories | DONE |
-| TICKET-007 | B — Repositories | PENDING |
+| TICKET-007 | B — Repositories | DONE |
 | TICKET-008 | B — Repositories | PENDING |
 | TICKET-009 | B — Repositories | PENDING |
 | TICKET-010 | B — Repositories | PENDING |
