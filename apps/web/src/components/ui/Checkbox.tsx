@@ -13,7 +13,7 @@ function slugify(text: string): string {
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, error, id, ...rest }, ref) => {
+  function Checkbox({ label, error, id, ...rest }, ref) {
     const inputId = id ?? slugify(label);
 
     return (

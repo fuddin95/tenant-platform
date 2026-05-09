@@ -42,4 +42,5 @@ coverage/
 packages/database/prisma/migrations/dev.db
 
 # Git worktrees
-.worktrees/
+**/worktrees/** 
+**/.worktrees/** 

@@ -61,7 +61,7 @@ const Spinner = () => (
 );
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
+  function Button(
     {
       variant = 'primary',
       size = 'md',
@@ -71,7 +71,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ...rest
     },
     ref,
-  ) => {
+  ) {
     const classes = [
       BASE_CLASSES,
       VARIANT_CLASSES[variant],
