@@ -242,10 +242,10 @@
 | Ticket | Phase | Status |
 |--------|-------|--------|
 | TICKET-001 | A — Foundation | DONE |
-| TICKET-002 | A — Foundation | PENDING |
-| TICKET-003 | A — Foundation | PENDING |
-| TICKET-004 | A — Foundation | PENDING |
-| TICKET-005 | A — Foundation | PENDING |
+| TICKET-002 | A — Foundation | DONE |
+| TICKET-003 | A — Foundation | DONE |
+| TICKET-004 | A — Foundation | DONE |
+| TICKET-005 | A — Foundation | DONE |
 | TICKET-006 | B — Repositories | PENDING |
 | TICKET-007 | B — Repositories | PENDING |
 | TICKET-008 | B — Repositories | PENDING |
