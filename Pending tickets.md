@@ -51,7 +51,7 @@
 ---
 
 ### TICKET-005 — `requireAuth` + `requireRole` middleware
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase A, Task 5  
 **Summary:** Create `middleware/requireAuth.ts` (`makeRequireAuth(jwtService)` — reads `req.cookies.token`, verifies JWT, attaches `req.user`, calls `next(UnauthorizedError)` if missing/invalid). Create `middleware/requireRole.ts` (`requireRole(role)` — curried, checks `req.user.role`, calls `next(ForbiddenError)` if mismatched).  
 **Files:** `apps/backend/src/middleware/requireAuth.ts`, `apps/backend/src/middleware/requireRole.ts`  
