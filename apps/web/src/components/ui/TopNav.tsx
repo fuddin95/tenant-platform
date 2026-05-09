@@ -26,12 +26,12 @@ const TopNav = async () => {
         </Link>
 
         <nav className="flex items-center gap-6">
-          {session?.user.role === 'LANDLORD' &&
+          {session?.user?.role === 'LANDLORD' &&
             LANDLORD_LINKS.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
 
-          {session?.user.role === 'TENANT' &&
+          {session?.user?.role === 'TENANT' &&
             TENANT_LINKS.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
@@ -46,7 +46,7 @@ const TopNav = async () => {
           )}
         </nav>
 
-        {session && (
+        {session?.user && (
           <div className="flex items-center gap-4">
             <span
               className="max-w-[180px] truncate text-caption text-fg-2"
