@@ -25,8 +25,8 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://rentaltrust:rentaltrust@postgres:5432/rentaltrust
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXTAUTH_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: http://localhost:3000
       AWS_REGION: ca-central-1
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
