@@ -24,6 +24,8 @@ const fromTenant = (t: Tenant): AuthUser => ({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // AUTH_URL is required in prod; in dev we trust all hosts so localhost works without extra env setup
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(raw): Promise<AuthUser | null> {
