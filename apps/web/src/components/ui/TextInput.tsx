@@ -21,7 +21,7 @@ function slugify(text: string): string {
 }
 
 const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
-  ({ label, error, hint, id, className, ...rest }, ref) => {
+  function TextInput({ label, error, hint, id, className, ...rest }, ref) {
     const inputId = id ?? slugify(label);
 
     const inputClasses = [

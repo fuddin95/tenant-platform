@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Instrument_Serif, Inter_Tight, JetBrains_Mono } from 'next/font/google';
+import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import '@/styles/globals.css';
 
@@ -33,7 +34,8 @@ const RootLayout = ({ children }: { readonly children: React.ReactNode }) => (
     className={`${instrumentSerif.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
   >
     <body className="min-h-screen flex flex-col bg-bg-1">
-      <main className="flex-1">{children}</main>
+      <Header />
+      <div className="flex-1">{children}</div>
       <Footer />
     </body>
   </html>

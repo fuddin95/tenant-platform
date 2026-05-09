@@ -27,7 +27,7 @@ function slugify(text: string): string {
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, options, error, placeholder, id, className, ...rest }, ref) => {
+  function Select({ label, options, error, placeholder, id, className, ...rest }, ref) {
     const selectId = id ?? slugify(label);
 
     const selectClasses = [

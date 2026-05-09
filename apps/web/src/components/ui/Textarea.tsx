@@ -22,7 +22,7 @@ function slugify(text: string): string {
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, error, hint, rows = 4, id, className, ...rest }, ref) => {
+  function Textarea({ label, error, hint, rows = 4, id, className, ...rest }, ref) {
     const inputId = id ?? slugify(label);
 
     const textareaClasses = [
