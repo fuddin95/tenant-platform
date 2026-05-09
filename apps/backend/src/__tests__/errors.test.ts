@@ -1,4 +1,4 @@
-import { AppError, ForbiddenError, NotFoundError, ValidationError } from '../types/errors';
+import { AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError } from '../types/errors';
 
 describe('AppError hierarchy', () => {
   it('ForbiddenError has status 403', () => {
@@ -23,5 +23,12 @@ describe('AppError hierarchy', () => {
   it('AppError is an instance of Error', () => {
     const err = new ForbiddenError('x');
     expect(err).toBeInstanceOf(Error);
+  });
+
+  it('UnauthorizedError has statusCode 401', () => {
+    const err = new UnauthorizedError('bad token');
+    expect(err.statusCode).toBe(401);
+    expect(err.message).toBe('bad token');
+    expect(err).toBeInstanceOf(AppError);
   });
 });

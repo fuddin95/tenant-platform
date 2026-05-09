@@ -7,6 +7,10 @@ export abstract class AppError extends Error {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  readonly statusCode = 401;
+}
+
 export class ForbiddenError extends AppError {
   readonly statusCode = 403;
 }
