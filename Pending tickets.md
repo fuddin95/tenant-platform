@@ -10,7 +10,7 @@
 ## Phase A — Foundation
 
 ### TICKET-001 — Merge prerequisites + install dependencies + schema migration
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase A, Task 1  
 **Summary:** Merge `feature/TEN-7-backend-scaffolding` and `feature/TEN-38-database-seed-script` into a new `feature/backend-implementation` branch. Install `jsonwebtoken`, `bcryptjs`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `cookie-parser`, `cors` and their types. Add `passwordHash String` to `Landlord` and `Tenant` in Prisma schema. Run migration and regenerate client.  
 **Files:** `packages/database/prisma/schema.prisma`, `apps/backend/package.json`  
@@ -19,7 +19,7 @@
 ---
 
 ### TICKET-002 — Add `UnauthorizedError` + Express type augmentations
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase A, Task 2  
 **Summary:** Add `UnauthorizedError` (HTTP 401) to the error hierarchy in `types/errors.ts`. Create `types/express.d.ts` with `Role`, `JwtPayload`, and the `Express.Request.user` augmentation so `req.user` is typed throughout the app.  
 **Files:** `apps/backend/src/types/errors.ts`, `apps/backend/src/types/express.d.ts`  
@@ -28,7 +28,7 @@
 ---
 
 ### TICKET-003 — Env validation + JWT service + S3 service
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase A, Task 3  
 **Summary:** Create `utils/env.ts` (Zod schema validates all required env vars at startup — fails fast if any missing). Create `utils/jwt.ts` (`makeJwtService(secret)` factory returning `{ sign, verify }`). Create `utils/s3.ts` (`makeS3Service(config)` factory returning `{ getPresignedPutUrl, getPresignedGetUrl }` using `@aws-sdk/client-s3` v3 with SSE-KMS).  
 **Files:** `apps/backend/src/utils/env.ts`, `apps/backend/src/utils/jwt.ts`, `apps/backend/src/utils/s3.ts`  
@@ -241,7 +241,7 @@
 
 | Ticket | Phase | Status |
 |--------|-------|--------|
-| TICKET-001 | A — Foundation | PENDING |
+| TICKET-001 | A — Foundation | DONE |
 | TICKET-002 | A — Foundation | PENDING |
 | TICKET-003 | A — Foundation | PENDING |
 | TICKET-004 | A — Foundation | PENDING |
