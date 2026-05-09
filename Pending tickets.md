@@ -37,7 +37,7 @@
 ---
 
 ### TICKET-004 — Repository interfaces (all 8)
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase A, Task 4  
 **Summary:** Create all 8 repository interfaces in `repositories/interfaces/`. Each interface defines the exact method signatures services will depend on. `IAuditRepository` exposes `create()` only — no `update`, no `delete` enforced at the interface level.  
 **Files:**
