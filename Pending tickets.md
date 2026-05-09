@@ -80,7 +80,7 @@
 ---
 
 ### TICKET-008 — Application Prisma repository
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase B, Task 8  
 **Summary:** Implement `makeApplicationRepository(db)` satisfying `IApplicationRepository`. `findByTenant` returns `ApplicationSummary[]` with computed `grantStatus` (ACTIVE/EXPIRED/REVOKED). `findByProperty` returns `ApplicationCard[]` with `profileCompletion` and `missingDocs`. `existsByTenantAndProperty` checks unique constraint before creation.  
 **Files:** `apps/backend/src/repositories/prisma/application.repository.ts`  
@@ -248,7 +248,7 @@
 | TICKET-005 | A — Foundation | DONE |
 | TICKET-006 | B — Repositories | DONE |
 | TICKET-007 | B — Repositories | DONE |
-| TICKET-008 | B — Repositories | PENDING |
+| TICKET-008 | B — Repositories | DONE |
 | TICKET-009 | B — Repositories | PENDING |
 | TICKET-010 | B — Repositories | PENDING |
 | TICKET-011 | C — Auth | PENDING |
