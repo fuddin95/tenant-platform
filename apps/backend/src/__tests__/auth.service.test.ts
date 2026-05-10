@@ -68,7 +68,7 @@ describe('makeAuthService', () => {
   it('registers a landlord and returns a signed JWT', async () => {
     mockLandlordRepo.create.mockResolvedValue(landlord);
 
-    const token = await authService.register({
+    const { token, user } = await authService.register({
       email: landlord.email,
       name: landlord.name,
       password: PASS,
@@ -76,6 +76,7 @@ describe('makeAuthService', () => {
     });
 
     expect(token).toBe('signed-token');
+    expect(user).toMatchObject({ id: landlord.id, email: landlord.email, name: landlord.name, role: 'LANDLORD' });
     expect(mockLandlordRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ email: landlord.email, name: landlord.name }),
     );
@@ -88,7 +89,7 @@ describe('makeAuthService', () => {
   it('registers a tenant, creates a profile shell, and returns a signed JWT', async () => {
     mockTenantRepo.create.mockResolvedValue(tenant);
 
-    const token = await authService.register({
+    const { token, user } = await authService.register({
       email: tenant.email,
       name: tenant.name,
       password: PASS,
@@ -96,6 +97,7 @@ describe('makeAuthService', () => {
     });
 
     expect(token).toBe('signed-token');
+    expect(user).toMatchObject({ id: tenant.id, email: tenant.email, name: tenant.name, role: 'TENANT' });
     expect(mockTenantRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ email: tenant.email, name: tenant.name }),
     );
@@ -116,9 +118,10 @@ describe('makeAuthService', () => {
   it('logs in a valid user and returns a signed JWT', async () => {
     mockLandlordRepo.findByEmail.mockResolvedValue(landlord);
 
-    const token = await authService.login({ email: landlord.email, password: PASS });
+    const { token, user } = await authService.login({ email: landlord.email, password: PASS });
 
     expect(token).toBe('signed-token');
+    expect(user).toMatchObject({ id: landlord.id, email: landlord.email, role: 'LANDLORD' });
     expect(mockJwt.sign).toHaveBeenCalledWith(
       expect.objectContaining({ sub: landlord.id, role: 'LANDLORD' }),
     );
