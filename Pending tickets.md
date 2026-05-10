@@ -98,7 +98,7 @@
 ---
 
 ### TICKET-010 — Grant + Audit + Notification Prisma repositories
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase B, Task 10  
 **Summary:** Implement `makeGrantRepository(db)` (findByTenant with computed status, findById with full context, create, revoke). Implement `makeAuditRepository(db)` — `create()` only. Implement `makeNotificationRepository(db)` (findByRecipient, create, markRead). Audit repository must have no `update` or `delete` methods.  
 **Files:** `apps/backend/src/repositories/prisma/grant.repository.ts`, `apps/backend/src/repositories/prisma/audit.repository.ts`, `apps/backend/src/repositories/prisma/notification.repository.ts`  
@@ -250,7 +250,7 @@
 | TICKET-007 | B — Repositories | DONE |
 | TICKET-008 | B — Repositories | DONE |
 | TICKET-009 | B — Repositories | DONE |
-| TICKET-010 | B — Repositories | PENDING |
+| TICKET-010 | B — Repositories | DONE |
 | TICKET-011 | C — Auth | PENDING |
 | TICKET-012 | C — Auth | PENDING |
 | TICKET-013 | D — Properties | PENDING |
