@@ -5,7 +5,6 @@ import type { PrismaClient } from '@rental-trust/database';
 
 const now = new Date();
 const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-const past = new Date(Date.now() - 1000);
 
 // ─── Grant repository ───────────────────────────────────────────────────────
 
