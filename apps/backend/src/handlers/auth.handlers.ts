@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { RequestHandler } from 'express';
 import type { AuthService } from '../services/auth.service';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const RegisterSchema = z.object({
   email: z.string().email(),
@@ -32,36 +33,24 @@ export type AuthHandlers = {
 };
 
 export const makeAuthHandlers = (service: AuthService): AuthHandlers => ({
-  register: async (req, res, next) => {
-    try {
-      const input = RegisterSchema.parse(req.body);
-      const { token, user } = await service.register(input);
-      res.cookie(COOKIE_NAME, token, cookieOpts).status(201).json(user);
-    } catch (err) {
-      next(err);
-    }
-  },
+  register: asyncHandler(async (req, res) => {
+    const input = RegisterSchema.parse(req.body);
+    const { token, user } = await service.register(input);
+    res.cookie(COOKIE_NAME, token, cookieOpts).status(201).json(user);
+  }),
 
-  login: async (req, res, next) => {
-    try {
-      const input = LoginSchema.parse(req.body);
-      const { token, user } = await service.login(input);
-      res.cookie(COOKIE_NAME, token, cookieOpts).json(user);
-    } catch (err) {
-      next(err);
-    }
-  },
+  login: asyncHandler(async (req, res) => {
+    const input = LoginSchema.parse(req.body);
+    const { token, user } = await service.login(input);
+    res.cookie(COOKIE_NAME, token, cookieOpts).json(user);
+  }),
 
   logout: (_req, res) => {
     res.clearCookie(COOKIE_NAME).status(204).end();
   },
 
-  me: async (req, res, next) => {
-    try {
-      const user = await service.getMe(req.user.sub, req.user.role);
-      res.json(user);
-    } catch (err) {
-      next(err);
-    }
-  },
+  me: asyncHandler(async (req, res) => {
+    const user = await service.getMe(req.user.sub, req.user.role);
+    res.json(user);
+  }),
 });
