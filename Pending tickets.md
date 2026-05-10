@@ -89,7 +89,7 @@
 ---
 
 ### TICKET-009 — Profile Prisma repository
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase B, Task 9  
 **Summary:** Implement `makeProfileRepository(db)` satisfying `IProfileRepository`. Key methods: `addDocument` (creates `Document` row), `softDeleteDocument` (sets `replacedAt = now()`), `findActiveDocTypes` (returns distinct `type` values where `replacedAt IS NULL`), `updateCompletion` (writes `completionPercent`).  
 **Files:** `apps/backend/src/repositories/prisma/profile.repository.ts`  
@@ -249,7 +249,7 @@
 | TICKET-006 | B — Repositories | DONE |
 | TICKET-007 | B — Repositories | DONE |
 | TICKET-008 | B — Repositories | DONE |
-| TICKET-009 | B — Repositories | PENDING |
+| TICKET-009 | B — Repositories | DONE |
 | TICKET-010 | B — Repositories | PENDING |
 | TICKET-011 | C — Auth | PENDING |
 | TICKET-012 | C — Auth | PENDING |
