@@ -25,9 +25,11 @@ export type SafeUser = {
   role: Role;
 };
 
+export type AuthResult = { token: string; user: SafeUser };
+
 export type AuthService = {
-  register: (input: RegisterInput) => Promise<string>;
-  login: (input: LoginInput) => Promise<string>;
+  register: (input: RegisterInput) => Promise<AuthResult>;
+  login: (input: LoginInput) => Promise<AuthResult>;
   getMe: (id: string, role: Role) => Promise<SafeUser>;
 };
 
@@ -55,12 +57,14 @@ export const makeAuthService = (
         passwordHash,
         role: 'INDEPENDENT_LANDLORD',
       });
-      return jwt.sign({ sub: landlord.id, role: 'LANDLORD', email });
+      const user: SafeUser = { id: landlord.id, email: landlord.email, name: landlord.name, role: 'LANDLORD' };
+      return { token: jwt.sign({ sub: landlord.id, role: 'LANDLORD', email }), user };
     }
 
     const tenant = await tenantRepo.create({ email, name, passwordHash });
     await profileRepo.create(tenant.id);
-    return jwt.sign({ sub: tenant.id, role: 'TENANT', email });
+    const user: SafeUser = { id: tenant.id, email: tenant.email, name: tenant.name, role: 'TENANT' };
+    return { token: jwt.sign({ sub: tenant.id, role: 'TENANT', email }), user };
   },
 
   login: async ({ email, password }) => {
@@ -68,14 +72,16 @@ export const makeAuthService = (
     if (landlord) {
       const valid = await bcrypt.compare(password, landlord.passwordHash);
       if (!valid) throw new UnauthorizedError('Invalid credentials');
-      return jwt.sign({ sub: landlord.id, role: 'LANDLORD', email });
+      const user: SafeUser = { id: landlord.id, email: landlord.email, name: landlord.name, role: 'LANDLORD' };
+      return { token: jwt.sign({ sub: landlord.id, role: 'LANDLORD', email }), user };
     }
 
     const tenant = await tenantRepo.findByEmail(email);
     if (tenant) {
       const valid = await bcrypt.compare(password, tenant.passwordHash);
       if (!valid) throw new UnauthorizedError('Invalid credentials');
-      return jwt.sign({ sub: tenant.id, role: 'TENANT', email });
+      const user: SafeUser = { id: tenant.id, email: tenant.email, name: tenant.name, role: 'TENANT' };
+      return { token: jwt.sign({ sub: tenant.id, role: 'TENANT', email }), user };
     }
 
     throw new UnauthorizedError('Invalid credentials');

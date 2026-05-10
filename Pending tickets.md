@@ -109,7 +109,7 @@
 ## Phase C — Auth Domain
 
 ### TICKET-011 — Auth service + tests
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase C, Task 11  
 **Summary:** Implement `makeAuthService(landlordRepo, tenantRepo, profileRepo, jwt)`. `register`: bcrypt hashes password (cost 12), creates Landlord or Tenant row, auto-creates Profile shell if TENANT, returns signed JWT. `login`: checks Landlord table first then Tenant, bcrypt compares, returns signed JWT. `getMe`: looks up user by id+role. Never returns `passwordHash`.  
 **Files:** `apps/backend/src/services/auth.service.ts`  
@@ -118,7 +118,7 @@
 ---
 
 ### TICKET-012 — Auth handlers + routes + server wiring
-**Status:** PENDING  
+**Status:** DONE  
 **Plan section:** Phase C, Task 12  
 **Summary:** Implement `makeAuthHandlers(service)` returning `{ register, login, logout, me }`. Each handler parses + validates request body (Zod), calls service, sets/clears httpOnly cookie (`token`, `HttpOnly`, `Secure`, `SameSite=strict`, 7-day `maxAge`). Create `routes/auth.ts` mounting the 4 handlers. Update `server.ts` to add `cookieParser()`, `cors({ origin: env.FRONTEND_URL, credentials: true })`, and mount auth router. Wire `requireAuth` into `/me` route only.  
 **Files:** `apps/backend/src/handlers/auth.handlers.ts`, `apps/backend/src/routes/auth.ts`, `apps/backend/src/server.ts`  
@@ -251,8 +251,8 @@
 | TICKET-008 | B — Repositories | DONE |
 | TICKET-009 | B — Repositories | DONE |
 | TICKET-010 | B — Repositories | DONE |
-| TICKET-011 | C — Auth | PENDING |
-| TICKET-012 | C — Auth | PENDING |
+| TICKET-011 | C — Auth | DONE |
+| TICKET-012 | C — Auth | DONE |
 | TICKET-013 | D — Properties | PENDING |
 | TICKET-014 | D — Properties | PENDING |
 | TICKET-015 | E — Applications | PENDING |
