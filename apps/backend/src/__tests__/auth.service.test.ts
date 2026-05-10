@@ -25,6 +25,8 @@ describe('makeAuthService', () => {
       name: 'Test Landlord',
       passwordHash,
       role: 'INDEPENDENT_LANDLORD',
+      city: null,
+      phone: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
