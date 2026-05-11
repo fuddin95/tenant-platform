@@ -63,7 +63,7 @@ describe('auth handlers', () => {
         .post('/api/auth/register')
         .send({ email: 'not-an-email', password: '123' });
 
-      expect(res.status).toBe(500); // Zod throws, caught by error handler as non-AppError
+      expect(res.status).toBe(400);
     });
   });
 
