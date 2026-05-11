@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 import { AppError } from './types/errors';
 
 export const requestLogger = (req: Request, _res: Response, next: NextFunction): void => {
@@ -14,6 +15,10 @@ export const errorHandler = (
 ): void => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: err.message });
+    return;
+  }
+  if (err instanceof ZodError) {
+    res.status(400).json({ error: 'Validation error', issues: err.issues });
     return;
   }
   // Never expose internal errors to the client
