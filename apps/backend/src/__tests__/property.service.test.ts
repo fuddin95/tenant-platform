@@ -18,9 +18,9 @@ describe('makePropertyService', () => {
     address: '123 Main St',
     unitNumber: null,
     city: 'Toronto',
-    rent: 2000,
+    rent: 2000 as unknown as Property['rent'],
     bedrooms: 2,
-    requiredDocs: ['GOVERNMENT_ID', 'PROOF_OF_INCOME'],
+    requiredDocs: ['GOVERNMENT_ID', 'PROOF_OF_INCOME'] as Property['requiredDocs'],
     applySlug: 'main-st-abc123',
     status: 'ACTIVE',
     createdAt: new Date(),
@@ -32,7 +32,7 @@ describe('makePropertyService', () => {
   const publicProperty: PublicProperty = {
     address: baseProperty.address,
     city: baseProperty.city,
-    rent: baseProperty.rent,
+    rent: 2000,
     bedrooms: baseProperty.bedrooms,
     landlordName: 'Test Landlord',
     requiredDocs: baseProperty.requiredDocs,
@@ -80,7 +80,7 @@ describe('makePropertyService', () => {
 
   it('create delegates to repo and returns the new property', async () => {
     mockPropRepo.create.mockResolvedValue(baseProperty);
-    const data = { address: '123 Main St', city: 'Toronto', rent: 2000, bedrooms: 2, requiredDocs: [] as any };
+    const data = { address: '123 Main St', city: 'Toronto', rent: 2000, bedrooms: 2, requiredDocs: [] as Property['requiredDocs'] };
 
     const result = await service.create(landlordId, data);
 
