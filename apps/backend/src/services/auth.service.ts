@@ -70,6 +70,7 @@ export const makeAuthService = (
   login: async ({ email, password }) => {
     const landlord = await landlordRepo.findByEmail(email);
     if (landlord) {
+      if (!landlord.passwordHash) throw new UnauthorizedError('Invalid credentials');
       const valid = await bcrypt.compare(password, landlord.passwordHash);
       if (!valid) throw new UnauthorizedError('Invalid credentials');
       const user: SafeUser = { id: landlord.id, email: landlord.email, name: landlord.name, role: 'LANDLORD' };
@@ -78,6 +79,7 @@ export const makeAuthService = (
 
     const tenant = await tenantRepo.findByEmail(email);
     if (tenant) {
+      if (!tenant.passwordHash) throw new UnauthorizedError('Invalid credentials');
       const valid = await bcrypt.compare(password, tenant.passwordHash);
       if (!valid) throw new UnauthorizedError('Invalid credentials');
       const user: SafeUser = { id: tenant.id, email: tenant.email, name: tenant.name, role: 'TENANT' };

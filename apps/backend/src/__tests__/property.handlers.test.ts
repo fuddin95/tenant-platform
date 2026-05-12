@@ -17,9 +17,9 @@ const baseProperty: Property = {
   address: '123 Main St',
   unitNumber: null,
   city: 'Toronto',
-  rent: 2000,
+  rent: 2000 as unknown as Property['rent'],
   bedrooms: 2,
-  requiredDocs: ['GOVERNMENT_ID'],
+  requiredDocs: ['GOVERNMENT_ID'] as Property['requiredDocs'],
   applySlug: 'main-st-abc123',
   status: 'ACTIVE',
   createdAt: new Date(),
@@ -31,7 +31,7 @@ const propertyWithCount: PropertyWithCount = { ...baseProperty, applicationCount
 const publicProperty: PublicProperty = {
   address: baseProperty.address,
   city: baseProperty.city,
-  rent: baseProperty.rent,
+  rent: 2000,
   bedrooms: baseProperty.bedrooms,
   landlordName: 'Test Landlord',
   requiredDocs: baseProperty.requiredDocs,
@@ -142,7 +142,7 @@ describe('property handlers', () => {
 
   describe('PATCH /api/properties/:id', () => {
     it('returns 200 with updated property', async () => {
-      mockService.update.mockResolvedValue({ ...baseProperty, rent: 2500 });
+      mockService.update.mockResolvedValue({ ...baseProperty, rent: 2500 as unknown as Property['rent'] });
 
       const res = await request(makeApp(mockService, mockWithLandlordAuth))
         .patch('/api/properties/prop-1')

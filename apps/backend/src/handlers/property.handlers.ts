@@ -1,16 +1,8 @@
 import { z } from 'zod';
 import type { RequestHandler } from 'express';
+import { DocumentType, PropertyStatus } from '@rental-trust/database';
 import type { PropertyService } from '../services/property.service';
 import { asyncHandler } from '../utils/asyncHandler';
-
-const DocTypeEnum = z.enum([
-  'GOVERNMENT_ID',
-  'PROOF_OF_INCOME',
-  'CREDIT_REPORT',
-  'REFERENCE_CONTACT',
-  'EMPLOYMENT_LETTER',
-  'BANK_STATEMENT',
-]);
 
 const CreatePropertySchema = z.object({
   address: z.string().min(1),
@@ -18,11 +10,11 @@ const CreatePropertySchema = z.object({
   city: z.string().min(1),
   rent: z.number().positive(),
   bedrooms: z.number().int().positive(),
-  requiredDocs: z.array(DocTypeEnum),
+  requiredDocs: z.array(z.nativeEnum(DocumentType)),
 });
 
 const UpdatePropertySchema = CreatePropertySchema.partial().extend({
-  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
+  status: z.nativeEnum(PropertyStatus).optional(),
 });
 
 export type PropertyHandlers = {
