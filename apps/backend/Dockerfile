@@ -20,15 +20,20 @@ FROM node:26-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 expressjs
+RUN apk add --no-cache openssl && \
+    addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 expressjs
 
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/package.json ./apps/backend/
+COPY --from=builder /app/apps/backend/entrypoint.sh ./
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
+RUN chmod +x entrypoint.sh && \
+    chown -R expressjs:nodejs /app/node_modules/@prisma
 USER expressjs
 EXPOSE 3001
 ENV PORT=3001
-CMD ["node", "apps/backend/dist/index.js"]
+CMD ["sh", "entrypoint.sh"]
