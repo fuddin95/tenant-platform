@@ -15,7 +15,7 @@ model Landlord {
   id           String         @id @default(cuid())
   email        String         @unique
   name         String
-  passwordHash String
+  passwordHash String?
   role         LandlordRole   @default(INDEPENDENT_LANDLORD)
   city       String?
   phone      String?
@@ -30,7 +30,7 @@ model Tenant {
   id           String        @id @default(cuid())
   email        String        @unique
   name         String
-  passwordHash String
+  passwordHash String?
   profile      Profile?
   applications Application[]
   createdAt    DateTime      @default(now())

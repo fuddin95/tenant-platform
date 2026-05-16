@@ -1,0 +1,2 @@
+ALTER TABLE "Landlord" ALTER COLUMN "passwordHash" DROP NOT NULL;
+ALTER TABLE "Tenant" ALTER COLUMN "passwordHash" DROP NOT NULL;

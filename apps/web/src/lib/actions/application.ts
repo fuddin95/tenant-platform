@@ -17,13 +17,16 @@ export async function submitApplicationAction(
   if (!session) redirect('/auth/signin')
   if (session.user.role !== 'TENANT') return { error: 'Only tenants can apply.' }
 
+  const tenantId = session.user.userId
+  if (!tenantId) redirect('/auth/signin')
+
   const parsed = SubmitSchema.safeParse({ propertyId: formData.get('propertyId') })
   if (!parsed.success) return { error: 'Invalid request.' }
 
   try {
     await db.application.create({
       data: {
-        tenantId: session.user.userId,
+        tenantId,
         propertyId: parsed.data.propertyId,
       },
     })

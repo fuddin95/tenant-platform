@@ -32,12 +32,15 @@ export async function createPropertyAction(
 
   if (!parsed.success) return { error: 'Please check all fields and try again.' }
 
+  const landlordId = session.user.userId
+  if (!landlordId) redirect('/auth/signin')
+
   const { address, city, unitNumber, bedrooms, rent, status } = parsed.data
 
   try {
     await db.property.create({
       data: {
-        landlordId: session.user.userId,
+        landlordId,
         address,
         city,
         unitNumber: unitNumber ?? null,
