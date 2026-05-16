@@ -1,3 +1,14 @@
 {
-  "enabledMcpjsonServers": ["linear"]
+  "enabledMcpjsonServers": ["linear"],
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__claude_ai_Linear__*"
+    ]
+  }
 }

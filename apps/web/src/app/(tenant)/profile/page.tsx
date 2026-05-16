@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { db } from '@rental-trust/database';
 import { redirect } from 'next/navigation';
 import ProfileForm from '@/components/tenant/ProfileForm';
+import DocumentUploadButton from '@/components/tenant/DocumentUploadButton';
 
 const DOC_LABELS: Record<string, string> = {
   GOVERNMENT_ID: 'Government ID',
@@ -37,6 +38,9 @@ async function TenantProfilePage() {
             <h1 className="text-2xl font-semibold text-fg-1">My Profile</h1>
             <p className="mt-1 text-sm text-fg-2">{session.user.email}</p>
           </div>
+          <div className="mb-4">
+            <DocumentUploadButton />
+          </div>
           {renderEmptyState()}
         </div>
       </main>
@@ -71,6 +75,9 @@ async function TenantProfilePage() {
         {/* Documents section */}
         <div className="mb-8">
           <h2 className="mb-4 text-lg font-semibold text-fg-1">Documents</h2>
+          <div className="mb-4">
+            <DocumentUploadButton />
+          </div>
           {profile.documents.length === 0 ? (
             <p className="text-sm text-fg-2">No documents uploaded yet.</p>
           ) : (
