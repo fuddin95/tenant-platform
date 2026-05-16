@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@rental-trust/database';
@@ -55,6 +56,9 @@ export default async function ApplicantsPage() {
                 <th className="text-left px-6 py-4 text-sm font-semibold text-fg-1">
                   Status
                 </th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-fg-1">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -78,6 +82,14 @@ export default async function ApplicantsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <ApplicationStatusBadge status={app.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Link
+                      href={`/applications/${app.id}`}
+                      className="text-sm text-sage hover:underline"
+                    >
+                      View docs →
+                    </Link>
                   </td>
                 </tr>
               ))}
