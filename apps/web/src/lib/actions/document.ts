@@ -84,7 +84,13 @@ export async function requestUploadAction(
   const storageKey = `tenants/${tenantId}/${randomHex16}/${fileName}`
 
   // 6. Generate pre-signed S3 PUT URL with 15-minute expiry and SSE-KMS
-  const s3 = new S3Client({ region: process.env.AWS_REGION! })
+  const s3 = new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  })
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET!,
     Key: storageKey,
