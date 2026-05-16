@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   transpilePackages: ['@rental-trust/database'],
   reactStrictMode: true,
   experimental: {
