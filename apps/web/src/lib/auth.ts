@@ -1,64 +1,49 @@
 import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { z } from 'zod';
+import Google from 'next-auth/providers/google';
 import { db } from '@rental-trust/database';
-import type { Landlord, Tenant } from '@rental-trust/database';
-
-const CredentialsSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(['LANDLORD', 'TENANT']),
-});
-
-type AuthUser = { readonly id: string; readonly email: string; readonly role: 'LANDLORD' | 'TENANT' };
-
-const fromLandlord = (l: Landlord): AuthUser => ({
-  id: l.id,
-  email: l.email,
-  role: 'LANDLORD',
-});
-
-const fromTenant = (t: Tenant): AuthUser => ({
-  id: t.id,
-  email: t.email,
-  role: 'TENANT',
-});
+import { setPendingAuth } from './pendingAuth';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Credentials({
-      async authorize(raw): Promise<AuthUser | null> {
-        const parsed = CredentialsSchema.safeParse(raw);
-        if (!parsed.success) return null;
-
-        const { email, role } = parsed.data;
-
-        try {
-          if (role === 'LANDLORD') {
-            const landlord = await db.landlord.findUnique({ where: { email } });
-            if (!landlord) return null;
-            // TODO: [TEN-37] verify passwordHash here once field is added in migration
-            return fromLandlord(landlord);
-          }
-
-          const tenant = await db.tenant.findUnique({ where: { email } });
-          if (!tenant) return null;
-          // TODO: [TEN-37] verify passwordHash here once field is added in migration
-          return fromTenant(tenant);
-        } catch {
-          return null;
-        }
-      },
-    }),
-  ],
+  providers: [Google],
   session: { strategy: 'jwt' },
   callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        const authUser = user as AuthUser;
-        return { ...token, userId: authUser.id, role: authUser.role };
+    async signIn({ account, profile }) {
+      if (account?.provider !== 'google') return false;
+
+      const email = profile?.email;
+      const name = profile?.name ?? 'User';
+      if (!email) return false;
+
+      const [landlord, tenant] = await Promise.all([
+        db.landlord.findUnique({ where: { email } }),
+        db.tenant.findUnique({ where: { email } }),
+      ]);
+
+      if (landlord || tenant) return true;
+
+      // New user — stash profile in a short-lived signed cookie, redirect to role selection
+      await setPendingAuth({ email, name });
+      return '/auth/select-role';
+    },
+
+    async jwt({ token, user, account }) {
+      // First sign-in after OAuth (account is present on initial callback)
+      if (account?.provider === 'google' && user?.email) {
+        const email = user.email;
+        const [landlord, tenant] = await Promise.all([
+          db.landlord.findUnique({ where: { email } }),
+          db.tenant.findUnique({ where: { email } }),
+        ]);
+        if (landlord) {
+          return { ...token, userId: landlord.id, role: 'LANDLORD' as const, email: landlord.email };
+        } else if (tenant) {
+          return { ...token, userId: tenant.id, role: 'TENANT' as const, email: tenant.email };
+        }
+        // Neither exists yet — selectRole hasn't run; leave token unset
       }
       return token;
     },
+
     session({ session, token }) {
       return {
         ...session,
@@ -68,9 +53,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: token.role,
         },
       };
-    },
-    redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl;
     },
   },
   pages: { signIn: '/auth/signin' },

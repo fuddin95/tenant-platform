@@ -3,7 +3,7 @@ import type { Landlord, LandlordRole } from '@rental-trust/database';
 export type CreateLandlordData = {
   email: string;
   name: string;
-  passwordHash: string;
+  passwordHash: string | null;
   role: LandlordRole;
 };
 
