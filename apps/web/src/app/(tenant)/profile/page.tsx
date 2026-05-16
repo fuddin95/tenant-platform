@@ -32,8 +32,8 @@ async function TenantProfilePage() {
 
   if (!profile) {
     return (
-      <main className="flex-1 p-8">
-        <div className="max-w-4xl">
+      <main className="flex-1 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-4xl">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-fg-1">My Profile</h1>
             <p className="mt-1 text-sm text-fg-2">{session.user.email}</p>
@@ -48,8 +48,8 @@ async function TenantProfilePage() {
   }
 
   return (
-    <main className="flex-1 p-8">
-      <div className="max-w-4xl">
+    <main className="flex-1 px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-fg-1">My Profile</h1>
@@ -81,7 +81,7 @@ async function TenantProfilePage() {
           {profile.documents.length === 0 ? (
             <p className="text-sm text-fg-2">No documents uploaded yet.</p>
           ) : (
-            <div className="overflow-hidden rounded-md border border-border-1">
+            <div className="overflow-x-auto rounded-md border border-border-1">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-1 bg-bg-2">
@@ -127,7 +127,7 @@ async function TenantProfilePage() {
           {profile.references.length === 0 ? (
             <p className="mb-6 text-sm text-fg-2">No references added yet.</p>
           ) : (
-            <div className="mb-6 overflow-hidden rounded-md border border-border-1">
+            <div className="mb-6 overflow-x-auto rounded-md border border-border-1">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-1 bg-bg-2">

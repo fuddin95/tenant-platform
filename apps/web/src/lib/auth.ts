@@ -50,7 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // After role selection the account was created but this token predates it.
       // Re-check the DB so the token self-heals without a second OAuth round-trip.
       if (!token.userId && token.email) {
-        const email = token.email as string;
+        const email = token.email;
         const [landlord, tenant] = await Promise.all([
           db.landlord.findUnique({ where: { email } }),
           db.tenant.findUnique({ where: { email } }),

@@ -1,29 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import TextInput from '@/components/ui/TextInput';
 import Button from '@/components/ui/Button';
+import { addReferenceAction } from '@/lib/actions/reference';
 
 type ProfileFormProps = {
   readonly profileId: string | null;
 };
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="primary" loading={pending} disabled={pending}>
+      Add Reference
+    </Button>
+  );
+}
+
 const ProfileForm = ({ profileId }: ProfileFormProps) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    relationship: '',
-    email: '',
-    phone: '',
-  });
-
-  const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // TODO: wire to Server Action in TEN-20
-  };
+  const [state, formAction] = useFormState(addReferenceAction, null);
 
   if (!profileId) {
     return (
@@ -36,36 +32,41 @@ const ProfileForm = ({ profileId }: ProfileFormProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={formAction} className="space-y-4">
+      <input type="hidden" name="profileId" value={profileId} />
+
+      {state && 'error' in state && (
+        <p className="text-sm text-danger" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state && 'success' in state && (
+        <p className="text-sm text-sage">Reference added successfully.</p>
+      )}
+
       <TextInput
         label="Name"
-        value={formData.name}
-        onChange={(e) => handleChange('name', e.currentTarget.value)}
+        name="name"
         placeholder="Reference name"
       />
       <TextInput
         label="Relationship"
-        value={formData.relationship}
-        onChange={(e) => handleChange('relationship', e.currentTarget.value)}
+        name="relationship"
         placeholder="e.g., Landlord, Manager, Colleague"
       />
       <TextInput
         label="Email"
         type="email"
-        value={formData.email}
-        onChange={(e) => handleChange('email', e.currentTarget.value)}
+        name="email"
         placeholder="reference@example.com"
       />
       <TextInput
         label="Phone"
         type="tel"
-        value={formData.phone}
-        onChange={(e) => handleChange('phone', e.currentTarget.value)}
+        name="phone"
         placeholder="+1 (555) 000-0000"
       />
-      <Button type="submit" variant="primary">
-        Add Reference
-      </Button>
+      <SubmitButton />
     </form>
   );
 };
