@@ -44,8 +44,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } else if (tenant) {
           return { ...token, userId: tenant.id, role: 'TENANT' as const, email: tenant.email };
         }
-        // Neither exists yet — selectRole hasn't run; leave token unset
+        // New user — selectRole hasn't run yet; token.email is set by OAuth profile
       }
+
+      // After role selection the account was created but this token predates it.
+      // Re-check the DB so the token self-heals without a second OAuth round-trip.
+      if (!token.userId && token.email) {
+        const email = token.email as string;
+        const [landlord, tenant] = await Promise.all([
+          db.landlord.findUnique({ where: { email } }),
+          db.tenant.findUnique({ where: { email } }),
+        ]);
+        if (landlord) {
+          return { ...token, userId: landlord.id, role: 'LANDLORD' as const, email: landlord.email };
+        } else if (tenant) {
+          return { ...token, userId: tenant.id, role: 'TENANT' as const, email: tenant.email };
+        }
+      }
+
       return token;
     },
 

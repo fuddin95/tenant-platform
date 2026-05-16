@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
-import { signIn } from '@/lib/auth';
 import { db } from '@rental-trust/database';
 import { consumePendingAuth } from '@/lib/pendingAuth';
 
@@ -41,11 +40,5 @@ export async function selectRole(role: 'LANDLORD' | 'TENANT'): Promise<never> {
     redirect('/auth/signin?error=SetupFailed');
   }
 
-  // Re-initiate Google OAuth — the signIn callback will now find the user and return true
-  await signIn('google', {
-    redirectTo: parsed.data === 'LANDLORD' ? '/dashboard' : '/profile',
-  });
-
-  // signIn always redirects; this satisfies TypeScript's never return type
-  redirect('/auth/signin');
+  redirect(parsed.data === 'LANDLORD' ? '/dashboard' : '/profile');
 }
