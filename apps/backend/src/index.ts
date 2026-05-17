@@ -15,6 +15,7 @@ import { makeGrantRepository } from './repositories/prisma/grant.repository';
 import { makeAuditRepository } from './repositories/prisma/audit.repository';
 import { makeNotificationRepository } from './repositories/prisma/notification.repository';
 import { makeDocumentRepository } from './repositories/prisma/document.repository';
+import { makeReferenceRepository } from './repositories/prisma/reference.repository';
 
 // ── Services ──────────────────────────────────────────────────────────────────
 import { makeAuthService } from './services/auth.service';
@@ -65,13 +66,14 @@ const grantRepo = makeGrantRepository(db);
 const auditRepo = makeAuditRepository(db);
 const notifRepo = makeNotificationRepository(db);
 const documentRepo = makeDocumentRepository(db);
+const referenceRepo = makeReferenceRepository(db);
 
 const authService = makeAuthService(landlordRepo, tenantRepo, profileRepo, jwt);
 const propertyService = makePropertyService(propRepo, appRepo);
 const appService = makeApplicationService(appRepo, grantRepo, auditRepo, notifRepo, propRepo);
 const grantService = makeGrantService(grantRepo, auditRepo, db);
 const documentService = makeDocumentService(profileRepo, documentRepo, grantRepo, auditRepo, s3);
-const profileService = makeProfileService(profileRepo);
+const profileService = makeProfileService(profileRepo, referenceRepo);
 const notifService = makeNotificationService(notifRepo);
 
 const requireAuth = makeRequireAuth(jwt);

@@ -1,10 +1,5 @@
-import type { PrismaClient, DocumentType } from '@rental-trust/database';
-import type {
-  IProfileRepository,
-  CreateDocumentData,
-  CreateReferenceData,
-  ProfileWithDocs,
-} from '../interfaces/IProfileRepository';
+import type { PrismaClient } from '@rental-trust/database';
+import type { IProfileRepository, ProfileWithDocs } from '../interfaces/IProfileRepository';
 
 export const makeProfileRepository = (db: PrismaClient): IProfileRepository => ({
   findByTenantId: (tenantId): Promise<ProfileWithDocs | null> =>
@@ -20,32 +15,5 @@ export const makeProfileRepository = (db: PrismaClient): IProfileRepository => (
 
   updateCompletion: async (profileId, percent): Promise<void> => {
     await db.profile.update({ where: { id: profileId }, data: { completionPercent: percent } });
-  },
-
-  addDocument: (data: CreateDocumentData) => db.document.create({ data }),
-
-  findDocumentById: (id) => db.document.findUnique({ where: { id } }),
-
-  softDeleteDocument: async (id): Promise<void> => {
-    await db.document.update({ where: { id }, data: { replacedAt: new Date() } });
-  },
-
-  findActiveDocTypes: async (profileId): Promise<DocumentType[]> => {
-    const docs = await db.document.findMany({
-      where: { profileId, replacedAt: null },
-      select: { type: true },
-      distinct: ['type'],
-    });
-    return docs.map((d) => d.type);
-  },
-
-  countReferences: (profileId) => db.tenantReference.count({ where: { profileId } }),
-
-  addReference: (data: CreateReferenceData) => db.tenantReference.create({ data }),
-
-  findReferenceById: (id) => db.tenantReference.findUnique({ where: { id } }),
-
-  deleteReference: async (id): Promise<void> => {
-    await db.tenantReference.delete({ where: { id } });
   },
 });

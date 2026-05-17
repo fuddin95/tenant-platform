@@ -66,7 +66,7 @@ export const makeDocumentService = (
 
     // Pre-create Document row so we can return a documentId
     // (same type = new record, not overwrite — per TEN-67 acceptance criteria)
-    const document = await profileRepo.addDocument({
+    const document = await documentRepo.addDocument({
       profileId: profile.id,
       type,
       storageKey,

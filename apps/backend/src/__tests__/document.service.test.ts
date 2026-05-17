@@ -40,7 +40,7 @@ const activeGrant: GrantWithContext = {
 };
 
 describe('makeDocumentService', () => {
-  let mockProfileRepo: jest.Mocked<Pick<IProfileRepository, 'findByTenantId' | 'findDocumentById' | 'addDocument' | 'updateCompletion' | 'findActiveDocTypes' | 'countReferences'>>;
+  let mockProfileRepo: jest.Mocked<Pick<IProfileRepository, 'findByTenantId'>>;
   let mockDocumentRepo: jest.Mocked<IDocumentRepository>;
   let mockGrantRepo: jest.Mocked<Pick<IGrantRepository, 'findById'>>;
   let mockAuditRepo: jest.Mocked<IAuditRepository>;
@@ -50,15 +50,13 @@ describe('makeDocumentService', () => {
   beforeEach(() => {
     mockProfileRepo = {
       findByTenantId: jest.fn(),
-      findDocumentById: jest.fn(),
-      addDocument: jest.fn(),
-      updateCompletion: jest.fn(),
-      findActiveDocTypes: jest.fn(),
-      countReferences: jest.fn(),
     };
     mockDocumentRepo = {
       findById: jest.fn(),
       findByProfileId: jest.fn(),
+      addDocument: jest.fn(),
+      softDeleteDocument: jest.fn(),
+      findActiveDocTypes: jest.fn(),
     };
     mockGrantRepo = {
       findById: jest.fn(),
@@ -94,7 +92,7 @@ describe('makeDocumentService', () => {
         references: [],
       });
       mockS3.getPresignedPutUrl.mockResolvedValue('https://s3.example.com/presigned-put');
-      mockProfileRepo.addDocument.mockResolvedValue(baseDocument);
+      mockDocumentRepo.addDocument.mockResolvedValue(baseDocument);
     });
 
     it('returns a presigned PUT URL and documentId', async () => {
