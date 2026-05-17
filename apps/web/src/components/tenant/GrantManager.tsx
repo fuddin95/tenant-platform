@@ -99,7 +99,7 @@ function CreateGrantForm({
   }, [state, onSuccess])
 
   return (
-    <form action={formAction} className="mt-3 space-y-4 rounded-md border border-border-1 bg-bg-2 p-4">
+    <form action={formAction} className="mt-3 space-y-4 glass-sm p-4">
       <input type="hidden" name="applicationId" value={applicationId} />
 
       {state && 'error' in state && (
@@ -155,7 +155,7 @@ function GrantRow({ grant, showRevoke = true }: { readonly grant: GrantData; rea
   const [revokeState, revokeAction] = useFormState(revokeGrantAction, null)
 
   return (
-    <div className="flex items-start justify-between gap-4 rounded-md border border-border-1 bg-bg-1 px-3 py-2">
+    <div className="flex items-start justify-between gap-4 glass-sm px-3 py-2">
       <div className="min-w-0">
         <div className="flex flex-wrap gap-1">
           {grant.allowedDocs.map((doc) => (
@@ -201,7 +201,7 @@ function ApplicationGrantCard({
   const past = application.grants.filter((g) => grantStatus(g) !== 'ACTIVE')
 
   return (
-    <div className="rounded-md border border-border-1 bg-surface-1 p-4">
+    <div className="glass p-4 refract">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-medium text-fg-1">{application.property.address}</p>
