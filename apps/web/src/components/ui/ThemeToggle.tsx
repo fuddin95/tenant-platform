@@ -50,6 +50,7 @@ const ThemeToggle = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('theme', next);
+    // eslint-disable-next-line functional/immutable-data
     document.documentElement.dataset.theme = next;
   };
 
