@@ -57,14 +57,14 @@ describe('makePropertyRepository', () => {
         include: { landlord: { select: { name: true } } },
       });
       expect(result).toMatchObject({
+        id: 'p1',
+        landlordId: 'l1',
         address: '100 King St W',
         city: 'Toronto',
         bedrooms: 2,
         landlordName: 'Dev Landlord',
         requiredDocs: ['GOVERNMENT_ID', 'PROOF_OF_INCOME'],
       });
-      expect(result).not.toHaveProperty('landlordId');
-      expect(result).not.toHaveProperty('id');
     });
 
     it('returns null when slug not found', async () => {

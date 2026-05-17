@@ -14,6 +14,8 @@ export type UpdatePropertyData = Partial<CreatePropertyData & { status: Property
 export type PropertyWithCount = Property & { applicationCount: number };
 
 export type PublicProperty = {
+  readonly id: string;
+  readonly landlordId: string;
   readonly address: string;
   readonly city: string;
   readonly rent: number;
