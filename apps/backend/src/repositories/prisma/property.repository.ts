@@ -25,8 +25,6 @@ export const makePropertyRepository = (db: PrismaClient): IPropertyRepository =>
     });
     if (!row) return null;
     return {
-      id: row.id,
-      landlordId: row.landlordId,
       address: row.address,
       city: row.city,
       rent: Number(row.rent),
