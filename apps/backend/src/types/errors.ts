@@ -30,3 +30,8 @@ export class ConflictError extends AppError {
 export class InternalError extends AppError {
   readonly statusCode = 500;
 }
+
+export class StorageError extends AppError {
+  readonly statusCode = 502;
+  readonly code = 'STORAGE_FAILURE';
+}
