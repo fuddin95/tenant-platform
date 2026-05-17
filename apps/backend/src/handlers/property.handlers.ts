@@ -55,7 +55,7 @@ export const makePropertyHandlers = (service: PropertyService): PropertyHandlers
   }),
 
   getBySlug: asyncHandler(async (req, res) => {
-    const property = await service.getBySlug(req.params.slug);
-    res.json(property);
+    const { id: _id, landlordId: _lid, ...publicView } = await service.getBySlug(req.params.slug);
+    res.json(publicView);
   }),
 });

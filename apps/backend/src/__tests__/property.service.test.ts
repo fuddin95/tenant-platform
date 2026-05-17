@@ -30,12 +30,12 @@ describe('makePropertyService', () => {
   const propertyWithCount: PropertyWithCount = { ...baseProperty, applicationCount: 3 };
 
   const publicProperty: PublicProperty = {
-    id: baseProperty.id,
+    id:         baseProperty.id,
     landlordId: baseProperty.landlordId,
-    address: baseProperty.address,
-    city: baseProperty.city,
-    rent: 2000,
-    bedrooms: baseProperty.bedrooms,
+    address:    baseProperty.address,
+    city:       baseProperty.city,
+    rent:       2000,
+    bedrooms:   baseProperty.bedrooms,
     landlordName: 'Test Landlord',
     requiredDocs: baseProperty.requiredDocs,
   };
