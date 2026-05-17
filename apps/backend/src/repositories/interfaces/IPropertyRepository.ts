@@ -14,14 +14,12 @@ export type UpdatePropertyData = Partial<CreatePropertyData & { status: Property
 export type PropertyWithCount = Property & { applicationCount: number };
 
 export type PublicProperty = {
-  id: string;
-  landlordId: string;
-  address: string;
-  city: string;
-  rent: number;
-  bedrooms: number;
-  landlordName: string;
-  requiredDocs: DocumentType[];
+  readonly address: string;
+  readonly city: string;
+  readonly rent: number;
+  readonly bedrooms: number;
+  readonly landlordName: string;
+  readonly requiredDocs: readonly DocumentType[];
 };
 
 export interface IPropertyRepository {
