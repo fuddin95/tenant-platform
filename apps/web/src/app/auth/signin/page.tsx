@@ -16,12 +16,12 @@ export default async function SignInPage({ searchParams }: Props) {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-bg-1 px-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm refract">
         <div className="mb-8 text-center">
           <h1 className="font-serif text-2xl text-fg-1">RentalTrust</h1>
         </div>
 
-        <div className="rounded-lg bg-surface-1 border border-border-1 p-6 space-y-6">
+        <div className="glass p-6 space-y-6">
           <div className="text-center space-y-1">
             <h2 className="text-lg font-semibold text-fg-1">Welcome back</h2>
             <p className="text-sm text-fg-2">Sign in to continue</p>

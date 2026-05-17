@@ -1,6 +1,6 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'sage' | 'soft';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 type ButtonOwnProps = {
@@ -14,14 +14,12 @@ type ButtonProps = ButtonOwnProps &
   Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwnProps>;
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary:
-    'bg-sage text-white hover:bg-sage-dark focus-visible:ring-sage',
-  secondary:
-    'bg-surface-1 text-fg-1 border border-border-1 hover:bg-bg-2 focus-visible:ring-sage',
-  ghost:
-    'bg-transparent text-sage hover:bg-sage-light focus-visible:ring-sage',
-  destructive:
-    'bg-danger text-white hover:bg-red-800 focus-visible:ring-danger',
+  primary:     'btn-base btn-primary focus-visible:ring-[var(--fg-1)]',
+  sage:        'btn-base btn-sage focus-visible:ring-[var(--color-sage)]',
+  secondary:   'btn-base btn-sage focus-visible:ring-[var(--color-sage)]',
+  ghost:       'btn-base btn-ghost focus-visible:ring-[var(--color-sage)]',
+  soft:        'btn-base btn-soft focus-visible:ring-[var(--color-sage)]',
+  destructive: 'btn-base btn-destructive focus-visible:ring-[var(--color-danger)]',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -31,8 +29,7 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 const BASE_CLASSES =
-  'inline-flex items-center justify-center font-medium rounded-md ' +
-  'transition-colors duration-150 ' +
+  'inline-flex items-center justify-center font-medium ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ' +
   'disabled:opacity-50 disabled:cursor-not-allowed';
 
