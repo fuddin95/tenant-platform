@@ -10,7 +10,8 @@ export default auth((req: NextRequest & { readonly auth: { readonly user?: { rea
     if (!session?.user) {
       return NextResponse.redirect(new URL('/auth/signin', req.url));
     }
-    if (session.user.role !== 'LANDLORD') {
+    // Only redirect if role is already known — new users land here before lazy hydration runs
+    if (session.user.role && session.user.role !== 'LANDLORD') {
       return NextResponse.redirect(new URL('/vault', req.url));
     }
   }
@@ -19,7 +20,7 @@ export default auth((req: NextRequest & { readonly auth: { readonly user?: { rea
     if (!session?.user) {
       return NextResponse.redirect(new URL('/auth/signin', req.url));
     }
-    if (session.user.role !== 'TENANT') {
+    if (session.user.role && session.user.role !== 'TENANT') {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
   }

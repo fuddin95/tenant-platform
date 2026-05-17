@@ -4,6 +4,7 @@ import type { IApplicationRepository, ApplicationSummary } from '../repositories
 import type { IGrantRepository } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
 import type { INotificationRepository } from '../repositories/interfaces/INotificationRepository';
+import type { IPropertyRepository } from '../repositories/interfaces/IPropertyRepository';
 import type { Application, AccessGrant, AuditEvent, Notification, DocumentType } from '@rental-trust/database';
 
 describe('makeApplicationService', () => {
@@ -11,6 +12,7 @@ describe('makeApplicationService', () => {
   let grantRepo: jest.Mocked<IGrantRepository>;
   let auditRepo: jest.Mocked<IAuditRepository>;
   let notifRepo: jest.Mocked<INotificationRepository>;
+  let propRepo: jest.Mocked<IPropertyRepository>;
   let service: ReturnType<typeof makeApplicationService>;
 
   const TENANT_ID = 'tenant-1';
@@ -69,6 +71,13 @@ describe('makeApplicationService', () => {
       create: jest.fn(),
       markRead: jest.fn(),
     };
+    propRepo = {
+      findByLandlord: jest.fn(),
+      findById: jest.fn(),
+      findBySlug: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    };
 
     appRepo.existsByTenantAndProperty.mockResolvedValue(false);
     appRepo.create.mockResolvedValue(mockApplication);
@@ -76,7 +85,7 @@ describe('makeApplicationService', () => {
     auditRepo.create.mockResolvedValue({ id: 'audit-1' } as AuditEvent);
     notifRepo.create.mockResolvedValue({ id: 'notif-1' } as unknown as Notification);
 
-    service = makeApplicationService(appRepo, grantRepo, auditRepo, notifRepo);
+    service = makeApplicationService(appRepo, grantRepo, auditRepo, notifRepo, propRepo);
   });
 
   describe('submit', () => {

@@ -49,7 +49,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       // After role selection the account was created but this token predates it.
       // Re-check the DB so the token self-heals without a second OAuth round-trip.
-      if (!token.userId && token.email) {
+      // Skip in Edge runtime (middleware) where Prisma native binaries cannot run.
+      if (!token.userId && token.email && process.env.NEXT_RUNTIME !== 'edge') {
         const email = token.email;
         const [landlord, tenant] = await Promise.all([
           db.landlord.findUnique({ where: { email } }),

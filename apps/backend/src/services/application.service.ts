@@ -1,10 +1,11 @@
-import type { DocumentType } from '@rental-trust/database';
+import type { DocumentType, ApplicationStatus } from '@rental-trust/database';
 import type { IApplicationRepository, ApplicationSummary } from '../repositories/interfaces/IApplicationRepository';
 import type { IGrantRepository } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
 import type { INotificationRepository } from '../repositories/interfaces/INotificationRepository';
+import type { IPropertyRepository } from '../repositories/interfaces/IPropertyRepository';
 import type { Role } from '../types/express';
-import { ConflictError, NotFoundError } from '../types/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '../types/errors';
 
 const GRANT_TTL_DAYS = 7;
 
@@ -22,6 +23,7 @@ export type ApplicationService = {
   submit(input: SubmitInput): Promise<SubmitResult>;
   listByTenant(tenantId: string): Promise<ApplicationSummary[]>;
   getById(id: string, role: Role): Promise<Record<string, unknown>>;
+  updateStatus(id: string, landlordId: string, status: ApplicationStatus): Promise<Record<string, unknown>>;
 };
 
 export const makeApplicationService = (
@@ -29,6 +31,7 @@ export const makeApplicationService = (
   grantRepo: IGrantRepository,
   auditRepo: IAuditRepository,
   notifRepo: INotificationRepository,
+  propRepo: IPropertyRepository,
 ): ApplicationService => ({
   submit: async ({ tenantId, propertyId, landlordId, allowedDocs, requiredDocs }) => {
     const exists = await appRepo.existsByTenantAndProperty(tenantId, propertyId);
@@ -82,5 +85,16 @@ export const makeApplicationService = (
 
     const { status: _status, ...tenantView } = application;
     return tenantView as Record<string, unknown>;
+  },
+
+  updateStatus: async (id, landlordId, status) => {
+    const application = await appRepo.findById(id);
+    if (!application) throw new NotFoundError('Application not found');
+
+    const property = await propRepo.findById(application.propertyId);
+    if (!property || property.landlordId !== landlordId) throw new ForbiddenError('Access denied');
+
+    const updated = await appRepo.updateStatus(id, status);
+    return updated as unknown as Record<string, unknown>;
   },
 });
