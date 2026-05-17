@@ -1,6 +1,7 @@
-import type { PrismaClient, AccessGrant, DocumentType } from '@rental-trust/database';
+import type { AccessGrant, DocumentType } from '@rental-trust/database';
 import type { IGrantRepository, GrantSummary } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
+import type { IApplicationRepository } from '../repositories/interfaces/IApplicationRepository';
 import { ForbiddenError, NotFoundError, ValidationError, ConflictError } from '../types/errors';
 
 export type CreateGrantInput = {
@@ -17,12 +18,12 @@ export type GrantService = {
 export const makeGrantService = (
   grantRepo: IGrantRepository,
   auditRepo: IAuditRepository,
-  db: PrismaClient,
+  appRepo: IApplicationRepository,
 ): GrantService => ({
   list: (tenantId) => grantRepo.findByTenant(tenantId),
 
   create: async (tenantId, applicationId, data) => {
-    const app = await db.application.findUnique({ where: { id: applicationId } });
+    const app = await appRepo.findById(applicationId);
     if (!app || app.tenantId !== tenantId) {
       throw new ForbiddenError('Application does not belong to tenant');
     }

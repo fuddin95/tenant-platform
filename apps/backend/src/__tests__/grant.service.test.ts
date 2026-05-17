@@ -2,6 +2,7 @@ import { makeGrantService } from '../services/grant.service';
 import { ForbiddenError, NotFoundError, ValidationError, ConflictError } from '../types/errors';
 import type { IGrantRepository, GrantSummary, GrantWithContext } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
+import type { IApplicationRepository } from '../repositories/interfaces/IApplicationRepository';
 import type { AccessGrant } from '@rental-trust/database';
 
 const makeMockGrantRepo = (): jest.Mocked<IGrantRepository> => ({
@@ -15,10 +16,8 @@ const makeMockAuditRepo = (): jest.Mocked<IAuditRepository> => ({
   create: jest.fn(),
 });
 
-const makeMockDb = (app?: { id: string; tenantId: string } | null) => ({
-  application: {
-    findUnique: jest.fn().mockResolvedValue(app ?? null),
-  },
+const makeMockAppRepo = (app?: { id: string; tenantId: string } | null): jest.Mocked<Pick<IApplicationRepository, 'findById'>> => ({
+  findById: jest.fn().mockResolvedValue(app ?? null),
 });
 
 const TENANT_ID = 'tenant-1';
@@ -73,8 +72,8 @@ describe('makeGrantService', () => {
 
   it('list returns grant summaries for tenant', async () => {
     grantRepo.findByTenant.mockResolvedValue(grantSummaries);
-    const db = makeMockDb();
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo();
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     const result = await service.list(TENANT_ID);
 
@@ -85,8 +84,8 @@ describe('makeGrantService', () => {
   // --- create ---
 
   it('create throws ForbiddenError if application does not belong to tenant', async () => {
-    const db = makeMockDb({ id: APP_ID, tenantId: OTHER_TENANT_ID });
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: OTHER_TENANT_ID });
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: futureDate }),
@@ -95,8 +94,8 @@ describe('makeGrantService', () => {
   });
 
   it('create throws ValidationError if expiresAt is in the past', async () => {
-    const db = makeMockDb({ id: APP_ID, tenantId: TENANT_ID });
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: TENANT_ID });
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: pastDate }),
@@ -105,8 +104,8 @@ describe('makeGrantService', () => {
   });
 
   it('create throws ForbiddenError if application is not found', async () => {
-    const db = makeMockDb(null);
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo(null);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: futureDate }),
@@ -114,9 +113,9 @@ describe('makeGrantService', () => {
   });
 
   it('create creates grant and writes ACCESS_GRANTED audit event', async () => {
-    const db = makeMockDb({ id: APP_ID, tenantId: TENANT_ID });
+    const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: TENANT_ID });
     grantRepo.create.mockResolvedValue(baseGrant);
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     const input = { allowedDocs: ['GOVERNMENT_ID'] as AccessGrant['allowedDocs'], expiresAt: futureDate };
     const result = await service.create(TENANT_ID, APP_ID, input);
@@ -140,8 +139,8 @@ describe('makeGrantService', () => {
 
   it('revoke throws NotFoundError if grant is not found', async () => {
     grantRepo.findById.mockResolvedValue(null);
-    const db = makeMockDb();
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo();
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(NotFoundError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -152,8 +151,8 @@ describe('makeGrantService', () => {
       ...grantWithContext,
       application: { ...grantWithContext.application, tenantId: OTHER_TENANT_ID },
     });
-    const db = makeMockDb();
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo();
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(ForbiddenError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -164,8 +163,8 @@ describe('makeGrantService', () => {
       ...grantWithContext,
       revokedAt: new Date(),
     });
-    const db = makeMockDb();
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo();
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(ConflictError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -174,8 +173,8 @@ describe('makeGrantService', () => {
   it('revoke calls repo revoke and writes ACCESS_REVOKED audit event', async () => {
     grantRepo.findById.mockResolvedValue(grantWithContext);
     grantRepo.revoke.mockResolvedValue(undefined);
-    const db = makeMockDb();
-    const service = makeGrantService(grantRepo, auditRepo, db as never);
+    const appRepo = makeMockAppRepo();
+    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
 
     await service.revoke(TENANT_ID, GRANT_ID);
 
