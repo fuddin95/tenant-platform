@@ -3,6 +3,8 @@ import { db } from '@rental-trust/database';
 import { redirect } from 'next/navigation';
 import ProfileForm from '@/components/tenant/ProfileForm';
 import DocumentUploadButton from '@/components/tenant/DocumentUploadButton';
+import GrantManager from '@/components/tenant/GrantManager';
+import type { ApplicationData } from '@/components/tenant/GrantManager';
 
 const DOC_LABELS: Record<string, string> = {
   GOVERNMENT_ID: 'Government ID',
@@ -17,10 +19,34 @@ async function TenantProfilePage() {
   const session = await auth();
   if (!session) redirect('/auth/signin');
 
-  const profile = await db.profile.findUnique({
-    where: { tenantId: session.user.userId },
-    include: { documents: true, references: true },
-  });
+  const [profile, applications] = await Promise.all([
+    db.profile.findUnique({
+      where: { tenantId: session.user.userId },
+      include: { documents: true, references: true },
+    }),
+    db.application.findMany({
+      where: { tenantId: session.user.userId },
+      orderBy: { submittedAt: 'desc' },
+      include: {
+        property: { select: { address: true, city: true } },
+        accessGrants: { orderBy: { grantedAt: 'desc' } },
+      },
+    }),
+  ]);
+
+  const applicationData: ApplicationData[] = applications.map((app) => ({
+    id: app.id,
+    property: app.property,
+    grants: app.accessGrants.map((g) => ({
+      id: g.id,
+      grantedAt: g.grantedAt.toISOString(),
+      expiresAt: g.expiresAt.toISOString(),
+      revokedAt: g.revokedAt?.toISOString() ?? null,
+      allowedDocs: g.allowedDocs,
+    })),
+  }));
+
+  const uploadedDocTypes = [...new Set((profile?.documents ?? []).map((d) => d.type))];
 
   const renderEmptyState = () => (
     <div className="rounded-md border border-border-1 bg-bg-2 p-6 text-center">
@@ -42,6 +68,13 @@ async function TenantProfilePage() {
             <DocumentUploadButton />
           </div>
           {renderEmptyState()}
+          <div className="mt-8">
+            <h2 className="mb-1 text-lg font-semibold text-fg-1">Applications &amp; Access</h2>
+            <p className="mb-4 text-sm text-fg-2">
+              Control which landlords can see your documents. You can revoke access at any time.
+            </p>
+            <GrantManager applications={applicationData} uploadedDocTypes={[]} />
+          </div>
         </div>
       </main>
     );
@@ -173,6 +206,18 @@ async function TenantProfilePage() {
             </h3>
             <ProfileForm profileId={profile.id} />
           </div>
+        </div>
+
+        {/* Applications & Access section */}
+        <div className="mb-8">
+          <h2 className="mb-1 text-lg font-semibold text-fg-1">Applications &amp; Access</h2>
+          <p className="mb-4 text-sm text-fg-2">
+            Control which landlords can see your documents. You can revoke access at any time.
+          </p>
+          <GrantManager
+            applications={applicationData}
+            uploadedDocTypes={uploadedDocTypes}
+          />
         </div>
       </div>
     </main>
