@@ -1,9 +1,12 @@
 export abstract class AppError extends Error {
   abstract readonly statusCode: number;
 
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
     this.name = this.constructor.name;
+    if (options?.cause !== undefined) {
+      (this as Record<string, unknown>).cause = options.cause;
+    }
   }
 }
 
