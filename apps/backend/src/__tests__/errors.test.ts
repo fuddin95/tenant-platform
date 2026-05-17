@@ -1,4 +1,4 @@
-import { AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError } from '../types/errors';
+import { AppError, ForbiddenError, NotFoundError, StorageError, UnauthorizedError, ValidationError } from '../types/errors';
 
 describe('AppError hierarchy', () => {
   it('ForbiddenError has status 403', () => {
@@ -30,5 +30,13 @@ describe('AppError hierarchy', () => {
     expect(err.statusCode).toBe(401);
     expect(err.message).toBe('bad token');
     expect(err).toBeInstanceOf(AppError);
+  });
+
+  it('StorageError has statusCode 502 and code STORAGE_FAILURE', () => {
+    const err = new StorageError('msg');
+    expect(err).toBeInstanceOf(AppError);
+    expect(err.statusCode).toBe(502);
+    expect(err.code).toBe('STORAGE_FAILURE');
+    expect(err.message).toBe('msg');
   });
 });

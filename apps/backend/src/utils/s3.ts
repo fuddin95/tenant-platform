@@ -31,7 +31,7 @@ export const makeS3Service = (config: S3Config): S3Service => {
         );
       } catch (err) {
         console.error('S3 getPresignedPutUrl failed:', err);
-        throw new StorageError('Storage operation failed');
+        throw new StorageError('Storage operation failed', { cause: err });
       }
     },
     getPresignedGetUrl: async (key, expiresIn = 3600) => {
@@ -43,7 +43,7 @@ export const makeS3Service = (config: S3Config): S3Service => {
         );
       } catch (err) {
         console.error('S3 getPresignedGetUrl failed:', err);
-        throw new StorageError('Storage operation failed');
+        throw new StorageError('Storage operation failed', { cause: err });
       }
     },
   };

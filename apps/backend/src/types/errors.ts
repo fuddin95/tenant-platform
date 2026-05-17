@@ -1,8 +1,8 @@
 export abstract class AppError extends Error {
   abstract readonly statusCode: number;
 
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
     this.name = this.constructor.name;
   }
 }

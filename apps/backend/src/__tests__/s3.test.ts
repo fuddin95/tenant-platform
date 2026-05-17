@@ -1,5 +1,6 @@
-import { makeS3Service } from '../s3';
-import { StorageError } from '../../types/errors';
+import { makeS3Service } from '../utils/s3';
+import { StorageError } from '../types/errors';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 jest.mock('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: jest.fn().mockRejectedValue(new Error('AWS SDK internal error: credentials not found')),
@@ -12,6 +13,8 @@ jest.mock('@aws-sdk/client-s3', () => ({
   GetObjectCommand: jest.fn().mockImplementation((input) => ({ input })),
 }));
 
+const mockGetSignedUrl = getSignedUrl as jest.MockedFunction<typeof getSignedUrl>;
+
 const fakeAwsErrorMessage = 'AWS SDK internal error: credentials not found';
 
 const config = {
@@ -23,13 +26,16 @@ const config = {
 describe('makeS3Service — error wrapping', () => {
   const service = makeS3Service(config);
 
+  beforeEach(() => {
+    mockGetSignedUrl.mockRejectedValue(new Error(fakeAwsErrorMessage));
+  });
+
   describe('getPresignedPutUrl', () => {
     it('throws StorageError when getSignedUrl rejects', async () => {
       await expect(service.getPresignedPutUrl('docs/file.pdf', 'application/pdf')).rejects.toBeInstanceOf(StorageError);
     });
 
     it('throws StorageError (not the raw AWS error)', async () => {
-      await expect(service.getPresignedPutUrl('docs/file.pdf', 'application/pdf')).rejects.not.toBeInstanceOf(Error.constructor);
       try {
         await service.getPresignedPutUrl('docs/file.pdf', 'application/pdf');
       } catch (err) {
@@ -75,6 +81,28 @@ describe('makeS3Service — error wrapping', () => {
         expect((err as StorageError).statusCode).toBe(502);
         expect((err as StorageError).code).toBe('STORAGE_FAILURE');
       }
+    });
+  });
+});
+
+describe('makeS3Service — happy path', () => {
+  const service = makeS3Service(config);
+
+  beforeEach(() => {
+    mockGetSignedUrl.mockResolvedValue('https://presigned-url');
+  });
+
+  describe('getPresignedPutUrl', () => {
+    it('returns the pre-signed URL string when getSignedUrl resolves', async () => {
+      const url = await service.getPresignedPutUrl('docs/file.pdf', 'application/pdf');
+      expect(url).toBe('https://presigned-url');
+    });
+  });
+
+  describe('getPresignedGetUrl', () => {
+    it('returns the pre-signed URL string when getSignedUrl resolves', async () => {
+      const url = await service.getPresignedGetUrl('docs/file.pdf');
+      expect(url).toBe('https://presigned-url');
     });
   });
 });
