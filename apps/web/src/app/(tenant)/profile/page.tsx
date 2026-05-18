@@ -34,7 +34,7 @@ async function TenantProfilePage() {
     }),
   ]);
 
-  const applicationData: ApplicationData[] = applications.map((app) => ({
+  const applicationData: readonly ApplicationData[] = applications.map((app) => ({
     id: app.id,
     property: app.property,
     grants: app.accessGrants.map((g) => ({

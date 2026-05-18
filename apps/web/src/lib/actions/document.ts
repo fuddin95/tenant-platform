@@ -27,8 +27,8 @@ const RequestUploadSchema = z.object({
 
 type RequestUploadInput = z.infer<typeof RequestUploadSchema>
 
-type UploadSuccessResult = { uploadUrl: string; documentId: string }
-type UploadErrorResult = { error: string }
+type UploadSuccessResult = { readonly uploadUrl: string; readonly documentId: string }
+type UploadErrorResult = { readonly error: string }
 type RequestUploadResult = UploadSuccessResult | UploadErrorResult
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB

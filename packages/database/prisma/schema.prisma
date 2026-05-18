@@ -34,6 +34,7 @@ model Tenant {
   passwordHash String?
   profile      Profile?
   applications Application[]
+  shareLinks   ShareLink[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -186,6 +187,50 @@ model Notification {
 }
 
 // ─────────────────────────────────────────────
+// SHARE LINKS — standalone tenant-to-recipient sharing
+// Not tied to an Application. Constitution Rules 2, 3, 4, 8.
+// ─────────────────────────────────────────────
+
+model ShareLink {
+  id             String          @id @default(cuid())
+  tenantId       String
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  recipientEmail String
+  recipientName  String
+  relation       String          // free-text, max 100 chars, Zod-validated in action
+  allowedFacts   FactCategory[]
+  // Constitution Rule 2: raw token NEVER stored — only SHA-256 hash
+  // Raw token travels in the URL only; hashing protects against DB compromise
+  tokenHash      String          @unique
+  status         ShareLinkStatus @default(ACTIVE)
+  expiresAt      DateTime        // always set, never null (Rule 8)
+  viewedAt       DateTime?       // set on first view only, idempotent on repeat visits
+  revokedAt      DateTime?       // instant revocation (Rule 4)
+  createdAt      DateTime        @default(now())
+  events         ShareLinkEvent[]
+
+  @@index([tenantId])
+  @@index([tokenHash])
+}
+
+model ShareLinkEvent {
+  id          String             @id @default(cuid())
+  shareLinkId String
+  shareLink   ShareLink          @relation(fields: [shareLinkId], references: [id], onDelete: Restrict)
+  eventType   ShareLinkEventType
+  actorId     String             // tenantId, 'system', or 'anonymous' for public views
+  actorType   ActorType          // reuses existing enum
+  metadata    Json?
+  occurredAt  DateTime           @default(now())
+  // NO updatedAt — append-only by design (Constitution Rule 3)
+  // Never: db.shareLinkEvent.update(...)
+  // Never: db.shareLinkEvent.delete(...)
+
+  @@index([shareLinkId])
+  @@index([occurredAt])
+}
+
+// ─────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────
 
@@ -237,4 +282,25 @@ enum NotificationType {
   LANDLORD_VIEWED_PROFILE
   ACCESS_EXPIRING_SOON
   APPLICATION_RECEIVED
+}
+
+enum FactCategory {
+  IDENTITY       // → GOVERNMENT_ID
+  INCOME         // → PROOF_OF_INCOME, PAY_STUB, EMPLOYMENT_LETTER
+  RENTAL_HISTORY // → placeholder, no DocumentType maps here yet
+  REFERENCES     // → REFERENCE_CONTACT
+  CREDIT         // → CREDIT_REPORT
+}
+
+enum ShareLinkStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum ShareLinkEventType {
+  LINK_CREATED
+  LINK_VIEWED
+  LINK_REVOKED
+  LINK_EXPIRED
 }
