@@ -6,6 +6,7 @@ import type { IAuditRepository } from '../repositories/interfaces/IAuditReposito
 import type { S3Service } from '../utils/s3';
 import type { DocumentType } from '@rental-trust/database';
 import { ForbiddenError, ValidationError } from '../types/errors';
+import { checkGrantActive } from '../utils/access-guard';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const UPLOAD_URL_EXPIRY = 900; // 15 minutes
@@ -91,14 +92,11 @@ export const makeDocumentService = (
       throw new ForbiddenError('Access denied');
     }
 
-    // Step 3 — check grant active: revokedAt must be null (Constitution Rule 4)
-    if (grant.revokedAt) {
-      throw new ForbiddenError('Access denied');
-    }
-
-    // Step 4 — check grant not expired (Constitution Rule 8)
-    if (grant.expiresAt <= new Date()) {
-      throw new ForbiddenError('Access denied');
+    // Steps 3+4 — check grant active: revocation (Rule 4) and expiry (Rule 8)
+    try {
+      checkGrantActive(grant);
+    } catch {
+      throw new ForbiddenError('Access denied'); // mask internal reason per TEN-69
     }
 
     // Step 5 — verify document type is in grant's allowedDocs (Rule 3 — granular consent)

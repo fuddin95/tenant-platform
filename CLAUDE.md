@@ -3,6 +3,9 @@
 > **Read this before writing a single line of code.**
 > This file is the source of truth for all AI coding agents (Cursor, Claude Code).
 > Every decision here traces back to `RentalTrust_ProductMaster.md`.
+>
+> **Frontend architecture, component rules, and testing standards → `docs/FRONTEND_ENGINEERING.md`**
+> Read it before creating any component, hook, container, or view.
 
 ---
 
@@ -140,6 +143,27 @@ export async function requireActiveGrant(grantId: string) {
 
 ---
 
+## Frontend Architecture — Four Layers (strict)
+
+Import direction is one-way. Never skip or reverse.
+
+```
+app/ (pages)  →  views/  →  containers/  →  components/
+```
+
+| Layer | Lives in | Rule |
+|-------|----------|------|
+| Pages | `app/` | Route shell only. Max 30 lines. Renders one view. |
+| Views | `src/views/` | Assembles containers + components. No data fetching. |
+| Containers | `src/containers/` | Only layer that calls server actions, reads DB, or holds async state. |
+| Components | `src/components/` | Pure function of props. No imports from `lib/actions` or `lib/auth`. |
+
+**Before creating a new component:** `grep -r "YourComponentName" src/components/` — if it exists, extend it. Never duplicate.
+
+Full rules: `docs/FRONTEND_ENGINEERING.md`
+
+---
+
 ## Coding Standards
 
 - **TypeScript strict mode.** No `any`. No type assertions without an explanatory comment.
@@ -149,6 +173,9 @@ export async function requireActiveGrant(grantId: string) {
 - **Error handling.** Never expose raw DB errors or S3 errors to the client. Wrap and log.
 - **No magic strings.** Use enums or const objects for status values, document types, event types.
 - **Prisma only.** No raw SQL unless absolutely necessary — comment explaining why if used.
+- **CSS tokens, never raw values.** `var(--ink-2)` not `#6b7280`. Add to `globals.css` if a token is missing.
+- **Three UI states always.** Every data-dependent view has loading, empty, and error states — ship all three.
+- **`'use client'` is a budget item.** Add only when you need hooks, browser APIs, or event handlers. Comment why.
 
 ---
 
