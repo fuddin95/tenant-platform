@@ -13,7 +13,7 @@ const AddReferenceSchema = z.object({
   phone: z.string().optional(),
 })
 
-export type AddReferenceState = { error: string } | { success: true } | null
+export type AddReferenceState = { readonly error: string } | { readonly success: true } | null
 
 export async function addReferenceAction(
   _prev: AddReferenceState,

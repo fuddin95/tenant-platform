@@ -3,19 +3,19 @@ import 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
-    user: {
-      userId?: string;
-      role?: 'LANDLORD' | 'TENANT';
-      email: string;
-      name?: string | null;
-      image?: string | null;
+    readonly user: {
+      readonly userId?: string;
+      readonly role?: 'LANDLORD' | 'TENANT';
+      readonly email: string;
+      readonly name?: string | null;
+      readonly image?: string | null;
     };
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    userId?: string;
-    role?: 'LANDLORD' | 'TENANT';
+    readonly userId?: string;
+    readonly role?: 'LANDLORD' | 'TENANT';
   }
 }

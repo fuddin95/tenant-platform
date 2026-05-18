@@ -12,7 +12,7 @@ const DOC_LABELS: Record<string, string> = {
   CREDIT_REPORT: 'Credit Report',
 }
 
-function grantStatus(grant: { revokedAt: Date | null; expiresAt: Date }): 'ACTIVE' | 'REVOKED' | 'EXPIRED' {
+function grantStatus(grant: { readonly revokedAt: Date | null; readonly expiresAt: Date }): 'ACTIVE' | 'REVOKED' | 'EXPIRED' {
   if (grant.revokedAt) return 'REVOKED'
   if (grant.expiresAt <= new Date()) return 'EXPIRED'
   return 'ACTIVE'
@@ -25,7 +25,7 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 type Props = {
-  readonly params: Promise<{ applicationId: string }>
+  readonly params: Promise<{ readonly applicationId: string }>
 }
 
 export default async function ApplicationDocumentsPage({ params }: Props) {

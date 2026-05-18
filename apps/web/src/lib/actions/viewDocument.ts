@@ -10,7 +10,7 @@ const VIEW_URL_EXPIRY = 3600 // 1 hour — Constitution Rule 2 max
 export async function getDocumentViewUrlAction(
   documentId: string,
   grantId: string,
-): Promise<{ url: string } | { error: string }> {
+): Promise<{ readonly url: string } | { readonly error: string }> {
   // 1. Verify landlord session
   const session = await auth()
   if (!session) return { error: 'Access denied' }

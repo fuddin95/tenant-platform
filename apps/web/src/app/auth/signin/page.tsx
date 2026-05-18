@@ -7,7 +7,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 type Props = {
-  readonly searchParams: Promise<{ error?: string }>;
+  readonly searchParams: Promise<{ readonly error?: string }>;
 };
 
 export default async function SignInPage({ searchParams }: Props) {
