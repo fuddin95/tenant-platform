@@ -1,13 +1,15 @@
-import type { DocumentType, ApplicationStatus } from '@rental-trust/database';
+import type { Application, DocumentType, ApplicationStatus } from '@rental-trust/database';
 import type { IApplicationRepository, ApplicationSummary } from '../repositories/interfaces/IApplicationRepository';
 import type { IGrantRepository } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
 import type { INotificationRepository } from '../repositories/interfaces/INotificationRepository';
 import type { IPropertyRepository } from '../repositories/interfaces/IPropertyRepository';
-import type { Role } from '../types/express';
 import { ConflictError, ForbiddenError, NotFoundError } from '../types/errors';
 
 const GRANT_TTL_DAYS = 7;
+
+export type ApplicationLandlordView = Application;
+export type ApplicationTenantView = Omit<Application, 'status'>;
 
 export type SubmitInput = {
   tenantId: string;
@@ -22,8 +24,9 @@ export type SubmitResult = { applicationId: string; grantId: string };
 export type ApplicationService = {
   submit(input: SubmitInput): Promise<SubmitResult>;
   listByTenant(tenantId: string): Promise<ApplicationSummary[]>;
-  getById(id: string, role: Role): Promise<Record<string, unknown>>;
-  updateStatus(id: string, landlordId: string, status: ApplicationStatus): Promise<Record<string, unknown>>;
+  getForLandlord(id: string, landlordId: string): Promise<ApplicationLandlordView>;
+  getForTenant(id: string, tenantId: string): Promise<ApplicationTenantView>;
+  updateStatus(id: string, landlordId: string, status: ApplicationStatus): Promise<Application>;
 };
 
 export const makeApplicationService = (
@@ -77,14 +80,20 @@ export const makeApplicationService = (
 
   listByTenant: (tenantId) => appRepo.findByTenant(tenantId),
 
-  getById: async (id, role) => {
+  getForLandlord: async (id, landlordId) => {
     const application = await appRepo.findById(id);
     if (!application) throw new NotFoundError('Application not found');
+    const property = await propRepo.findById(application.propertyId);
+    if (!property || property.landlordId !== landlordId) throw new ForbiddenError('Access denied');
+    return application;
+  },
 
-    if (role === 'LANDLORD') return application as unknown as Record<string, unknown>;
-
+  getForTenant: async (id, tenantId) => {
+    const application = await appRepo.findById(id);
+    if (!application) throw new NotFoundError('Application not found');
+    if (application.tenantId !== tenantId) throw new ForbiddenError('Access denied');
     const { status: _status, ...tenantView } = application;
-    return tenantView as Record<string, unknown>;
+    return tenantView;
   },
 
   updateStatus: async (id, landlordId, status) => {
@@ -95,6 +104,6 @@ export const makeApplicationService = (
     if (!property || property.landlordId !== landlordId) throw new ForbiddenError('Access denied');
 
     const updated = await appRepo.updateStatus(id, status);
-    return updated as unknown as Record<string, unknown>;
+    return updated;
   },
 });

@@ -1,11 +1,11 @@
 import { makeApplicationService } from '../services/application.service';
-import { ConflictError } from '../types/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '../types/errors';
 import type { IApplicationRepository, ApplicationSummary } from '../repositories/interfaces/IApplicationRepository';
 import type { IGrantRepository } from '../repositories/interfaces/IGrantRepository';
 import type { IAuditRepository } from '../repositories/interfaces/IAuditRepository';
 import type { INotificationRepository } from '../repositories/interfaces/INotificationRepository';
 import type { IPropertyRepository } from '../repositories/interfaces/IPropertyRepository';
-import type { Application, AccessGrant, AuditEvent, Notification, DocumentType } from '@rental-trust/database';
+import type { Application, AccessGrant, AuditEvent, Notification, Property, DocumentType } from '@rental-trust/database';
 
 describe('makeApplicationService', () => {
   let appRepo: jest.Mocked<IApplicationRepository>;
@@ -191,21 +191,75 @@ describe('makeApplicationService', () => {
     });
   });
 
-  describe('getById', () => {
-    it('returns application including status when called with LANDLORD role', async () => {
-      appRepo.findById.mockResolvedValue(mockApplication);
+  describe('getForLandlord', () => {
+    const mockProperty: Property = {
+      id: PROPERTY_ID,
+      landlordId: LANDLORD_ID,
+      address: '123 Main St',
+      unitNumber: null,
+      city: 'Toronto',
+      rent: 2000 as unknown as Property['rent'],
+      bedrooms: 2,
+      requiredDocs: [] as Property['requiredDocs'],
+      applySlug: 'slug-1',
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-      const result = await service.getById('app-1', 'LANDLORD');
+    it('returns application including status when landlord owns the property', async () => {
+      appRepo.findById.mockResolvedValue(mockApplication);
+      propRepo.findById.mockResolvedValue(mockProperty);
+
+      const result = await service.getForLandlord('app-1', LANDLORD_ID);
 
       expect(result).toHaveProperty('status');
+      expect(result).toEqual(mockApplication);
     });
 
-    it('returns application without status when called with TENANT role', async () => {
+    it('throws NotFoundError when application does not exist', async () => {
+      appRepo.findById.mockResolvedValue(null);
+
+      await expect(service.getForLandlord('app-1', LANDLORD_ID)).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws ForbiddenError when property does not belong to this landlord', async () => {
+      const otherProperty: Property = { ...mockProperty, landlordId: 'other-landlord' };
+      appRepo.findById.mockResolvedValue(mockApplication);
+      propRepo.findById.mockResolvedValue(otherProperty);
+
+      await expect(service.getForLandlord('app-1', LANDLORD_ID)).rejects.toThrow(ForbiddenError);
+    });
+
+    it('throws ForbiddenError when property is not found', async () => {
+      appRepo.findById.mockResolvedValue(mockApplication);
+      propRepo.findById.mockResolvedValue(null);
+
+      await expect(service.getForLandlord('app-1', LANDLORD_ID)).rejects.toThrow(ForbiddenError);
+    });
+  });
+
+  describe('getForTenant', () => {
+    it('returns application without status when tenant owns the application', async () => {
       appRepo.findById.mockResolvedValue(mockApplication);
 
-      const result = await service.getById('app-1', 'TENANT');
+      const result = await service.getForTenant('app-1', TENANT_ID);
 
       expect(result).not.toHaveProperty('status');
+      expect(result).toHaveProperty('id', 'app-1');
+      expect(result).toHaveProperty('tenantId', TENANT_ID);
+    });
+
+    it('throws NotFoundError when application does not exist', async () => {
+      appRepo.findById.mockResolvedValue(null);
+
+      await expect(service.getForTenant('app-1', TENANT_ID)).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws ForbiddenError when tenant does not own the application', async () => {
+      appRepo.findById.mockResolvedValue(mockApplication);
+
+      await expect(service.getForTenant('app-1', 'other-tenant')).rejects.toThrow(ForbiddenError);
     });
   });
 });

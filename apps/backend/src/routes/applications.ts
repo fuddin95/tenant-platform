@@ -14,7 +14,7 @@ export const makeApplicationRouter = (
 
   router.post('/', withTenantAuth, handlers.submit);
   router.get('/mine', withTenantAuth, handlers.listByTenant);
-  router.get('/:id', handlers.getById);
+  router.get('/:id', handlers.getApplication);
   router.patch('/:id/status', withLandlordAuth, handlers.updateStatus);
 
   return router;

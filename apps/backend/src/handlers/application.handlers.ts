@@ -19,7 +19,7 @@ const UpdateStatusSchema = z.object({
 export type ApplicationHandlers = {
   submit: RequestHandler;
   listByTenant: RequestHandler;
-  getById: RequestHandler;
+  getApplication: RequestHandler;
   updateStatus: RequestHandler;
 };
 
@@ -45,9 +45,14 @@ export const makeApplicationHandlers = (
     res.json(applications);
   }),
 
-  getById: asyncHandler(async (req, res) => {
-    const application = await appService.getById(req.params.id, req.user.role);
-    res.json(application);
+  getApplication: asyncHandler(async (req, res) => {
+    if (req.user.role === 'LANDLORD') {
+      const application = await appService.getForLandlord(req.params.id, req.user.sub);
+      res.json(application);
+    } else {
+      const application = await appService.getForTenant(req.params.id, req.user.sub);
+      res.json(application);
+    }
   }),
 
   updateStatus: asyncHandler(async (req, res) => {
