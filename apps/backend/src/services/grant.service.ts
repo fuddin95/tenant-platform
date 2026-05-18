@@ -18,7 +18,7 @@ export type GrantService = {
 export const makeGrantService = (
   grantRepo: IGrantRepository,
   auditRepo: IAuditRepository,
-  appRepo: IApplicationRepository,
+  appRepo: Pick<IApplicationRepository, 'findById'>,
 ): GrantService => ({
   list: (tenantId) => grantRepo.findByTenant(tenantId),
 

@@ -73,7 +73,7 @@ describe('makeGrantService', () => {
   it('list returns grant summaries for tenant', async () => {
     grantRepo.findByTenant.mockResolvedValue(grantSummaries);
     const appRepo = makeMockAppRepo();
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     const result = await service.list(TENANT_ID);
 
@@ -85,7 +85,7 @@ describe('makeGrantService', () => {
 
   it('create throws ForbiddenError if application does not belong to tenant', async () => {
     const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: OTHER_TENANT_ID });
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: futureDate }),
@@ -95,7 +95,7 @@ describe('makeGrantService', () => {
 
   it('create throws ValidationError if expiresAt is in the past', async () => {
     const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: TENANT_ID });
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: pastDate }),
@@ -105,7 +105,7 @@ describe('makeGrantService', () => {
 
   it('create throws ForbiddenError if application is not found', async () => {
     const appRepo = makeMockAppRepo(null);
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(
       service.create(TENANT_ID, APP_ID, { allowedDocs: ['GOVERNMENT_ID'], expiresAt: futureDate }),
@@ -115,7 +115,7 @@ describe('makeGrantService', () => {
   it('create creates grant and writes ACCESS_GRANTED audit event', async () => {
     const appRepo = makeMockAppRepo({ id: APP_ID, tenantId: TENANT_ID });
     grantRepo.create.mockResolvedValue(baseGrant);
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     const input = { allowedDocs: ['GOVERNMENT_ID'] as AccessGrant['allowedDocs'], expiresAt: futureDate };
     const result = await service.create(TENANT_ID, APP_ID, input);
@@ -140,7 +140,7 @@ describe('makeGrantService', () => {
   it('revoke throws NotFoundError if grant is not found', async () => {
     grantRepo.findById.mockResolvedValue(null);
     const appRepo = makeMockAppRepo();
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(NotFoundError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe('makeGrantService', () => {
       application: { ...grantWithContext.application, tenantId: OTHER_TENANT_ID },
     });
     const appRepo = makeMockAppRepo();
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(ForbiddenError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -164,7 +164,7 @@ describe('makeGrantService', () => {
       revokedAt: new Date(),
     });
     const appRepo = makeMockAppRepo();
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
     await expect(service.revoke(TENANT_ID, GRANT_ID)).rejects.toThrow(ConflictError);
     expect(grantRepo.revoke).not.toHaveBeenCalled();
@@ -174,9 +174,10 @@ describe('makeGrantService', () => {
     grantRepo.findById.mockResolvedValue(grantWithContext);
     grantRepo.revoke.mockResolvedValue(undefined);
     const appRepo = makeMockAppRepo();
-    const service = makeGrantService(grantRepo, auditRepo, appRepo as never);
+    const service = makeGrantService(grantRepo, auditRepo, appRepo);
 
-    await service.revoke(TENANT_ID, GRANT_ID);
+    const result = await service.revoke(TENANT_ID, GRANT_ID);
+    expect(result).toBeUndefined();
 
     expect(grantRepo.revoke).toHaveBeenCalledWith(GRANT_ID, TENANT_ID);
     expect(auditRepo.create).toHaveBeenCalledWith({
